@@ -1,6 +1,66 @@
-# Playroom — Flappy Bird, Pikachu & Tetris
+# Playroom — Hệ thống Minigame trực tuyến
 
 Website minigame dùng Node.js, Express, Socket.IO, MongoDB Atlas và React + TypeScript + CSS thuần. Người chơi phải đăng ký/đăng nhập; danh tính và lịch sử gắn với tài khoản.
+
+Playroom là hệ thống minigame trực tuyến trên nền tảng web, cho phép
+người dùng đăng ký tài khoản, chơi game, tạo/phòng tham gia phòng online,
+thi đấu với người chơi khác và lưu lịch sử thành tích.
+
+Hệ thống hiện tích hợp 3 minigame:
+
+- Flappy Bird
+- Pikachu
+- Tetris
+
+## Demo
+
+Website: https://doanky-1.vercel.app
+
+## Chức năng chính
+
+- Đăng ký, đăng nhập và quản lý tài khoản
+- Chơi đơn
+- Chơi 2 người trên cùng thiết bị
+- Tạo và tham gia phòng online
+- Phòng công khai hoặc phòng riêng có mật khẩu
+- Mời người chơi bằng mã/link phòng
+- Đồng bộ trận đấu thời gian thực bằng Socket.IO
+- Lưu lịch sử trận đấu và thành tích
+- Quản lý hồ sơ, avatar và đổi mật khẩu
+- Khôi phục mật khẩu qua email
+- Xử lý mất kết nối và tái kết nối phòng
+
+## Công nghệ sử dụng
+
+### Frontend
+- React
+- TypeScript
+- Vite
+- CSS
+
+### Backend
+- Node.js
+- Express
+- Socket.IO
+
+### Database & Authentication
+- MongoDB / MongoDB Atlas
+- Mongoose
+- JWT
+- Cookie HttpOnly
+
+### Deployment
+- Vercel
+- MongoDB Atlas
+
+## Một số giao diện
+
+<!-- Thêm ảnh đăng nhập -->
+<!-- Thêm ảnh danh sách minigame -->
+<!-- Thêm ảnh tạo phòng -->
+<!-- Thêm ảnh đang chơi online -->
+
+## Chạy dự án
 
 ## Chạy dự án
 
