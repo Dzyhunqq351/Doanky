@@ -1,0 +1,138 @@
+.auth-shell {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100dvh;
+}
+.verification-code {
+  font-size: 24px;
+  letter-spacing: 0.25em;
+  font-variant-numeric: tabular-nums;
+}
+.auth-form .text-button {
+  margin-top: 16px;
+}
+.auth-story {
+  background: oklch(0.28 0.037 110);
+  color: white;
+  padding: 48px 12%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+}
+.auth-story .logo {
+  color: oklch(0.88 0.08 110);
+}
+.auth-story h1 {
+  font-size: clamp(36px, 4vw, 60px);
+  line-height: 1.14;
+  letter-spacing: -0.035em;
+  margin: 22px 0;
+}
+.auth-story p {
+  max-width: 37ch;
+  color: oklch(0.88 0.02 110);
+}
+.auth-story span,
+.auth-story small {
+  font-size: 12px;
+  color: oklch(0.86 0.06 110);
+}
+.auth-form {
+  display: grid;
+  place-items: center;
+  padding: 45px 30px;
+}
+.auth-form form {
+  width: 100%;
+  max-width: 390px;
+}
+.auth-form h2 {
+  font-size: 29px;
+  margin: 18px 0 8px;
+}
+.auth-form p {
+  color: var(--muted);
+  font-size: 14px;
+}
+.auth-form label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 20px 0;
+}
+.auth-form input {
+  width: 100%;
+  margin-top: 8px;
+  min-height: 46px;
+}
+.auth-form label small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+  margin-top: 6px;
+}
+.auth-form .primary {
+  width: 100%;
+  justify-content: space-between;
+  margin-top: 24px;
+}
+.password-input {
+  position: relative;
+}
+.password-input input {
+  padding-right: 42px;
+}
+.password-input button {
+  position: absolute;
+  right: 8px;
+  top: 18px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+}
+.auth-switch {
+  text-align: center;
+  margin-top: 24px !important;
+}
+.auth-switch button {
+  border: 0;
+  background: none;
+  color: var(--brand);
+  font-weight: 700;
+}
+.auth-form .notice {
+  color: oklch(0.4 0.13 25);
+}
+@media (max-width: 750px) {
+  .auth-shell {
+    grid-template-columns: 1fr;
+  }
+  .auth-story {
+    padding: 26px;
+  }
+  .auth-story > div,
+  .auth-story > small {
+    display: none;
+  }
+  .auth-form {
+    padding: 32px 24px;
+    align-items: start;
+  }
+  .auth-form h2 {
+    font-size: 26px;
+  }
+}
+.auth-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 16px;
+  background: oklch(0.96 0.05 145);
+  color: oklch(0.32 0.1 145);
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.55;
+  border: 1px solid oklch(0.82 0.12 145);
+}

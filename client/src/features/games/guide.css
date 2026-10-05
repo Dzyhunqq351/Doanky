@@ -1,0 +1,118 @@
+.game-guide {
+  border-top: 1px solid var(--border, #dedfd9);
+  margin-top: 16px;
+  padding: 14px 0;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.game-guide summary {
+  cursor: pointer;
+  font-weight: 650;
+  padding: 4px 0;
+}
+.game-guide summary:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+.game-guide dl,
+.game-guide p,
+.game-guide ul {
+  max-width: 72ch;
+}
+.game-guide dt {
+  font-weight: 650;
+  margin-top: 12px;
+}
+.game-guide .guide-heading {
+  font-size: 13px;
+  font-weight: 750;
+}
+.game-guide .guide-controls-heading {
+  color: #1d4ed8;
+}
+.game-guide .guide-goal-heading {
+  color: #15803d;
+}
+.game-guide .guide-tip-heading {
+  color: #a16207;
+}
+.game-guide dd {
+  margin: 3px 0 0;
+}
+.control-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 7px !important;
+}
+.control-group {
+  display: grid;
+  grid-template-columns: minmax(112px, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 12px;
+}
+.control-group > strong {
+  font-size: 12px;
+}
+.control-group > span:last-child {
+  grid-column: 2;
+  color: var(--muted);
+  font-size: 12px;
+}
+.control-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.control-keys kbd {
+  display: inline-flex;
+  min-width: 25px;
+  min-height: 24px;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--ink, oklch(0.24 0.025 255));
+  font: 700 10px/1.4 inherit;
+  white-space: nowrap;
+}
+.game-guide .mode-note {
+  margin-top: 14px;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.game-guide li {
+  margin: 8px 0;
+}
+@media (max-width: 480px) {
+  .control-group {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+  .control-group > span:last-child {
+    grid-column: 1;
+  }
+}
+.room-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 14px 0;
+  align-items: end;
+}
+.room-filters label {
+  display: grid;
+  gap: 5px;
+  font-size: 13px;
+}
+.room-filters input,
+.room-filters select {
+  padding: 9px;
+  max-width: 100%;
+  border: 1px solid #b8bcb0;
+  border-radius: 6px;
+  background: white;
+  color: #26291f;
+}
