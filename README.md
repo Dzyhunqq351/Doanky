@@ -1,100 +1,107 @@
 # Playroom — Flappy Bird, Pikachu & Tetris
 
-Node.js + Express + Socket.IO + MongoDB; React + TypeScript + Tailwind CSS trong `client/`. Không có đăng nhập. Một định danh thiết bị ngẫu nhiên được giữ trong localStorage; một định danh chỉ dùng được một kết nối đang hoạt động. Mở tab mới cùng trình duyệt sẽ thay thế tab cũ. Trình duyệt khác, chế độ ẩn danh hoặc xóa localStorage tạo định danh mới (không fingerprint phần cứng).
+Website minigame dùng Node.js, Express, Socket.IO, MongoDB Atlas và React + TypeScript + CSS thuần. Người chơi phải đăng ký/đăng nhập; danh tính và lịch sử gắn với tài khoản.
 
 ## Chạy dự án
 
-Yêu cầu Node.js 22+ và npm. MongoDB dùng để lưu lịch sử lâu dài, không nằm trên đường xử lý game realtime.
+Yêu cầu Node.js 22+, npm và MongoDB đang chạy.
 
 ```powershell
 npm ci
 Copy-Item .env.example .env
-# Chỉnh MONGODB_URI trong .env nếu dùng MongoDB Atlas hoặc máy chủ riêng.
+npm run auth:setup
 npm run dev
 ```
 
-Mở http://localhost:3000. `npm run dev` build frontend lần đầu vào `client/dist`, sau đó chạy Express bằng nodemon và Vite build watch đồng thời. Frontend được Express phục vụ cùng cổng; khi sửa frontend hãy tải lại trình duyệt (build watch không phải HMR). Tùy chọn HMR: chạy `node server.js` và `npm run dev --workspace client` ở hai terminal; Vite đã proxy HTTP/WebSocket tới backend.
+Mở http://localhost:3000. `npm run dev` build frontend vào `client/dist`, rồi chạy backend và Vite build watch đồng thời. Tải lại trình duyệt sau khi frontend build xong. MongoDB mặc định: `mongodb://127.0.0.1:27017/playroom`.
 
 ```powershell
-npm run build  # tạo client/dist
-npm start      # Express phục vụ API, WebSocket và client/dist
-npm test       # integration WebSocket + physics + authorization
-npm run test:load # 60 client WebSocket thật, một trận 15 giây
-npm run check  # TypeScript
-npm run test:db # Kiểm tra ghi/đọc MongoDB trong database playroom_test
+npm run build   # Frontend production -> client/dist
+npm start       # Backend phục vụ frontend + API + WebSocket
+npm run check   # TypeScript
+npm test        # Engine, tài khoản, HTTP và phòng online
+npm run test:db # Integration với MongoDB thật
 ```
 
-Các thiết bị cùng mạng có thể mở `http://<IP-LAN-máy-chủ>:3000` nếu firewall cho phép. Link chia sẻ dùng origin đang mở: đừng chia sẻ link `localhost` cho thiết bị khác. Khi đưa lên Internet, dùng HTTPS và proxy có hỗ trợ WebSocket, trỏ tất cả socket của một phòng về cùng tiến trình.
+Nếu dùng Vite HMR riêng: chạy backend với `APP_ORIGIN=http://localhost:5173`, rồi `npm run dev --workspace client`. Khi triển khai HTTPS, đặt `NODE_ENV=production` và `APP_ORIGIN` đúng tên miền. Proxy phải hỗ trợ WebSocket. Thiết bị cùng mạng truy cập `http://<IP-LAN>:3000`; link localhost chỉ hoạt động trên máy chủ.
 
-## Chức năng
+## Luồng người chơi
 
-- Sảnh hiển thị phòng public trực tuyến và Flappy Bird; tìm phòng theo tên/mã, lọc còn chỗ.
-- Tạo phòng public hoặc private. Mỗi phòng có mã ngẫu nhiên 8 ký tự và link `/?room=XXXXXXXX`.
-- Private: kiểm tra mật khẩu (scrypt, không lưu plaintext), sau đó chờ chủ phòng duyệt. Yêu cầu hết hạn sau 2 phút. Phòng private không nằm trên danh sách công khai; mật khẩu không nằm trong link.
-- Tối đa **60 thiết bị bao gồm chủ phòng/khán giả**; chủ phòng giảm được giới hạn xuống 2–60.
-- Tên 1–24 ký tự và avatar ngẫu nhiên từ bộ 12 icon mặc định; có thể đổi trước khi vào phòng.
-- Chủ phòng kick, duyệt/từ chối, chỉnh luật trước ván, bắt đầu ván, chốt điểm sớm và chơi ván tiếp theo. Thiết bị bị kick bị chặn vào lại phòng đó.
-- Thời gian: 15s / 30s / 1p / 2p / 5p / 10p / 30p / vô hạn; hoặc nhập 15–1.800 giây. Số lần hồi sinh: 0–100 hoặc vô hạn nếu trận có giới hạn thời gian. Người chơi bấm Chơi lại sau khi thua; đồng hồ trận vẫn chạy.
-- Chủ phòng cùng chơi hoặc chỉ quan sát; xem toàn cảnh với chim mờ và tên của mọi người, hoặc focus riêng từng người. Màn hình người chơi chỉ hiện chim của họ. Chọn biểu tượng mắt cạnh người chơi để focus màn hình của họ. Người đã hết lượt vẫn có thể xem người khác.
-- Đếm ngược 3 giây; cùng seed đường ống cho mọi người và mỗi lần hồi sinh. Chạm / Space để bay; máy chủ quyết định va chạm và điểm. Không pause riêng trong trận multiplayer.
-- Mỗi lần thua cập nhật kết quả lượt ngay. Điểm xếp hạng là **điểm cao nhất của một lượt**, không cộng dồn các lần hồi sinh. Chủ phòng có thể chọn điểm trung bình = tổng điểm các lượt / số lượt đã bắt đầu. Đồng điểm dùng ID để thứ tự ổn định.
-- Kết thúc khi hết giờ, mọi người hết lượt, hoặc chủ phòng chốt trận. Dashboard có top 1 lớn ở giữa, top 2 bên trái, top 3 bên phải; bảng đầy đủ gồm hạng, avatar, tên, điểm, số lượt và thời gian chơi. Giữ 10 ván gần nhất trong phòng; lưu kết quả vào MongoDB khi có kết nối. Người rời/kick giữa trận vẫn giữ thành tích trong kết quả trận đó.
-- Mất mạng: giữ chỗ 30 giây và nối lại phòng. Game vẫn chạy để tránh lợi dụng ngắt mạng; hết 30 giây sẽ rời phòng. Chủ phòng rời thì quyền chuyển sang người còn kết nối; phòng rỗng tự đóng.
+- Đăng ký tên đăng nhập, tên nhân vật, mật khẩu; avatar mặc định ngẫu nhiên. Đổi tên/avatar trong Hồ sơ.
+- Trò chơi hiển thị ngay ba game, nút **Tạo phòng** trên từng game, **Nhập mã phòng**, và danh sách phòng public đang chờ thêm người (ẩn khi trống). Tìm theo tên/mã, lọc theo game hoặc chỉ phòng còn chỗ; chỗ giữ khi mất mạng vẫn được tính. Luật chơi/phím điều khiển mở ngay tại game, kèm mục yêu cầu thiết bị và kết nối.
+- Phòng online tối đa **2 tài khoản**, mã ngẫu nhiên 8 ký tự, mời bằng link. Phòng riêng cần mật khẩu và không hiện trong danh sách public.
+- Rời/chốt trận online đang chơi cần xác nhận; rời game local chưa hoàn thành cũng cảnh báo mất điểm chưa lưu.
+- Chủ phòng bắt đầu khi đủ hai người; đếm ngược 3 giây. Flappy/Tetris dùng cùng map/chuỗi khối. Pikachu online cho hai người chơi đồng thời trên cùng bố cục, mỗi tài khoản chỉ nhận đầy đủ bàn của mình; điểm và thời gian đối thủ chỉ công bố khi trận kết thúc. Chủ phòng có thể kết thúc sớm và chơi trận mới.
+- Kết quả online do server tính và lưu vào lịch sử của cả hai tài khoản. Flappy/Tetris xếp theo điểm; Pikachu dùng tiêu chí điểm hoặc thời gian do chủ phòng chọn.
+- Mất kết nối giữ chỗ 30 giây, game tiếp tục chạy. Rời phòng kết thúc lượt hiện tại; quyền chủ phòng chuyển cho người còn lại. Một tài khoản chỉ giữ một kết nối phòng; tab mới thay thế tab cũ.
+- Vẫn có Chơi đơn; Flappy/Tetris có 2 người cùng máy và Luyện với máy. Pikachu thay chế độ chia bàn bằng 2 người thay phiên, không có Luyện với máy. Các chế độ này cần đăng nhập, xử lý game tại trình duyệt và lưu kết quả vào lịch sử cá nhân.
+- Thành tích: gộp lịch sử và điểm cao nhất trong 100 trận gần nhất vào một bảng, lọc game và sắp theo điểm hoặc thời gian ghi nhận. Kết quả local do client gửi, không dùng làm bảng xếp hạng cạnh tranh toàn hệ thống.
 
-- Màn chơi tự mở rộng theo chiều ngang trên máy tính/tablet, có nút mở rộng và toàn màn hình; giữ nguyên tỉ lệ vật lý và map chung. HUD có thời gian, điểm và lượt hồi sinh; âm thanh bay, qua ống và va chạm có nút bật/tắt.
-- Chủ phòng có thể ẩn chia sẻ: phòng ngừng hiện ở sảnh và không nhận người mới qua mã/link; người đang trong phòng vẫn chơi.
-- Map chỉ tạo mới khi chủ phòng bắt đầu trận tiếp theo. Người đang chờ chơi lại vẫn giữ trận hoạt động cho đến khi hết giờ hoặc tự dừng chơi.
+## Luật và điều khiển
 
-## Pikachu và Tetris
+- **Flappy Bird:** cùng đường ống theo seed, Space/↑/chạm để bay. Hai người cùng máy: P1 Space/W; P2 ↑/NumPad 0. Một mạng mỗi lượt; kết thúc khi cả hai thua hoặc chủ phòng dừng.
+- **Pikachu:** nối hai quân giống nhau với tối đa hai góc rẽ. +100 điểm/cặp, mặc định 3 gợi ý (−30 điểm/lần), 5 đổi vị trí (−10 điểm/lần); tạo phòng cho phép chọn mỗi loại 0–10. Hết nước tự sắp lại miễn phí. Hai người cùng máy chơi lần lượt, tối đa 7 phút/người và dùng hai bàn khác nhau. Online chơi đồng thời trên cùng bố cục nhưng ẩn hoàn toàn tiến độ đối thủ đến cuối trận. Có thể xếp theo điểm hoặc thời gian hoàn thành.
+- **Tetris:** bảng 10×20, cùng chuỗi 7-bag, giữ khối, xem trước 5 khối. Chơi đơn và hai người cùng máy chơi đến khi kết thúc rồi so điểm; phòng online dùng thời gian do chủ phòng chọn. Xóa 1/2/3/4 hàng: 100/300/500/800 × cấp; hạ chậm +1/ô, thả nhanh +2/ô.
+- Tetris online/chơi đơn: ← → di chuyển, ↑ xoay, ↓ hạ, Space thả, C giữ. Cùng máy: P1 WASD + Space, Q giữ; P2 mũi tên + NumPad 0, NumPad 1 giữ. Có nút chạm trên giao diện.
 
-Ở sảnh, chọn **Chơi đơn** hoặc **Tạo phòng solo** trên thẻ game. Phòng solo chứa đúng 2 thiết bị; chỉ chủ phòng bắt đầu sau khi đủ người. Mời bằng mã 8 ký tự hoặc link `/?arena=XXXXXXXX`. Hai người dùng cùng bàn/chuỗi khối; lần bắt đầu tiếp theo tạo seed mới. Máy chủ kiểm tra điểm, đường nối, khối rơi và thời gian. Chơi đơn cũng cần kết nối máy chủ.
-
-- **Pikachu:** bàn 16×9 dùng 36 icon động vật mặc định. Nối hai quân giống nhau với tối đa 2 góc rẽ, có thể đi qua viền trống. +100 điểm/cặp; đồng hồ đếm xuôi đến khi hết bàn hoặc dừng lượt. Chơi đơn có 3 gợi ý và 5 đổi vị trí; phòng đấu chỉnh mỗi loại 0–10. Mỗi lần dùng trừ 30 điểm, điểm có thể âm. Hết nước đi thì tự sắp lại miễn phí. Xếp hạng theo điểm hoặc thời gian hoàn thành; chưa hoàn thành đứng sau khi chọn thời gian.
-- **Tetris:** bàn 10×20, chuỗi 7-bag, giữ khối một lần mỗi khối, xem trước 5 khối, bóng vị trí đáp, xoay có kiểm tra tường, khóa sau 500ms chạm nền (tối đa 15 lần gia hạn). Chơi đơn đến khi đầy bàn; đấu đôi **3 phút, so điểm**. Nếu mọi người đã kết thúc thì chốt sớm. Xóa 1/2/3/4 hàng được 100/300/500/800 × cấp độ; hạ chậm +1 và thả nhanh +2 mỗi ô. Đồng điểm ưu tiên thời gian sống lâu hơn.
-- Tetris: ←/→ di chuyển, ↑ xoay, Z xoay ngược, ↓ hạ, Space thả nhanh, C giữ khối. Có nút chạm cho tablet/điện thoại. Hai bàn cạnh nhau trên máy tính/tablet, xếp dọc ở màn hẹp.
-- Người dừng/rời trận xếp sau. Giữ chỗ mất mạng 30 giây; game vẫn chạy. Lưu loại game, điểm, thời gian và số cặp/hàng vào model `Match` trong MongoDB.
-- Các lớp mới: `arcadeController.js` xử lý lệnh; `arcadeService.js` quản lý phòng/trận; `pikachuEngine.js` và `tetrisEngine.js` xử lý luật. Frontend có `ArcadeLobby`, `ArcadeView`, `PikachuBoard`, `TetrisBoard`.
-
-## Kiến trúc
+## Cấu trúc dễ bảo trì
 
 ```text
-server.js                       HTTP server + Socket.IO + MongoDB
+server.js                          Khởi động HTTP, MongoDB, Socket.IO
 src/
-  app.js                        Express, Helmet, static SPA
-  config/database.js            Kết nối / thử lại MongoDB
-  models/Match.js               Model lưu kết quả trận
+  app.js                           Express, static SPA, middleware
+  config/database.js               Kết nối MongoDB
+  models/                          User, Session, Match
+  middleware/auth.js               Cookie, bảo vệ API, kiểm tra origin
+  routes/                          API/auth và lệnh Socket.IO
+  controllers/                     HTTP auth và lịch sử/kỷ lục
   services/
-    rules.js                    Validation, mã phòng, mật khẩu
-    flappyEngine.js              Physics cố định 60 Hz
-    roomService.js               Phòng, vòng đời trận, điểm, focus
-    matchService.js              Lưu lịch sử MongoDB
-  controllers/roomController.js  Command/ack, rate limit, authorization
-  routes/api.js                 Health API
-  routes/socket.js              WebSocket transport
-client/
-  src/App.tsx                   Sảnh, danh tính, tạo/vào phòng
-  src/components/RoomView.tsx    Phòng, admin, kết quả
-  src/components/FlappyCanvas.tsx Canvas renderer
-  src/components/RulesEditor.tsx Cấu hình luật
-  src/lib/multiplayer.ts         Types và giao thức client
-  public/flappy/                Sprite / âm thanh upstream
-  dist/                         Sinh ra khi build
-third_party/FlappyBird/          Snapshot mã nguồn upstream
-tests/multiplayer.test.js        Kiểm thử tự động
-scripts/load-test.js             Đo tải WebSocket 60 thiết bị
+    authService.js                 Tài khoản, mật khẩu, phiên
+    onlineRoomService.js           Phòng online, đồng bộ trận, quyền chủ phòng
+    localResultService.js          Kiểm tra kết quả local
+    matchService.js                Ghi MongoDB idempotent
+    hubService.js                  Tổng hợp lịch sử/kỷ lục tài khoản
+shared/
+  localMatch.js                    Vòng đời trận dùng chung local/server
+  flappyEngine.js, flappyPhysics.js Vật lý Flappy
+  pikachuEngine.js, tetrisEngine.js Luật game
+  controls.js, arcadeBot.js         Bàn phím và bot
+client/src/
+  App.tsx                          Cổng đăng nhập và điều hướng
+  features/auth/                   Form tài khoản
+  features/rooms/                  Tổng quan, tạo/vào phòng, game online
+  features/games/                  Catalog, game local, canvas, bàn phím
+  features/hub/                    Lịch sử, kỷ lục, hồ sơ
+  components/                      Bàn Pikachu/Tetris và avatar
+  lib/                             API, âm thanh, kiểu dữ liệu
+client/public/flappy/               Sprite và âm thanh upstream
+third_party/FlappyBird/             Bản nguồn lưu để đối chiếu
 ```
 
-## Đường truyền và giới hạn vận hành
+Luật game chỉ sửa trong `shared/`; giao diện và truyền tải không tự định nghĩa luật thứ hai. Các component và service của cơ chế khách/thiết bị cũ đã được loại bỏ. Dữ liệu MongoDB cũ không bị xóa và không tự gán sang tài khoản mới.
 
-Kết quả kiểm thử và phạm vi đo: [docs/VALIDATION.md](docs/VALIDATION.md).
+## Phiên và vận hành
 
-- Server mô phỏng fixed-step 60 Hz; canvas vẽ bằng requestAnimationFrame, dự đoán thao tác ngay tại client và hiệu chỉnh theo server; ngoại suy tối đa 250ms khi thiếu snapshot.
-- Mỗi client nhận trạng thái người đang focus, 15 Hz, qua volatile event (bỏ frame cũ khi mạng chậm). Riêng chủ phòng ở chế độ toàn cảnh nhận thêm danh sách vị trí chim trong cùng gói tin. Không stream video và không broadcast 60 canvas cho mỗi client.
-- Roster/điểm 2 Hz, thay đổi quan trọng và kết thúc lượt gửi ngay; bảng phòng chỉ gửi khi thay đổi. Asset cache bởi trình duyệt; sprite tải một lần cho canvas.
-- Tối đa 100 phòng mỗi tiến trình; payload socket tối đa 8KB; thao tác quản trị/room giới hạn 25/s mỗi thiết bị; flap tối đa 20/s được áp dụng. Giới hạn 60 là giới hạn logic và được load test trên localhost, **không phải bảo đảm FPS/latency trên mọi điện thoại hoặc mạng di động**.
-- Phòng và phiên đang chạy lưu trong RAM của một tiến trình; restart server mất phòng hiện tại. MongoDB lưu kết quả, không khôi phục trận đang chơi. Cần thiết kế room sharding/worker affinity trước khi chạy nhiều backend; thêm Redis adapter riêng không tự chia sẻ physics state.
-- Nếu MongoDB chưa sẵn sàng, game và kết quả trong phòng vẫn hoạt động; UI báo kết quả chưa lưu lâu dài. Chưa có trang truy vấn lịch sử MongoDB sau khi phòng đóng.
+Hồ sơ hỗ trợ liên kết email và đổi mật khẩu. Quên mật khẩu dùng mã email 6 số; xem [cấu hình Gmail](docs/GMAIL_SETUP.md). Thiết lập SMTP trên backend trước khi sử dụng chức năng gửi mã.
 
-## Nguồn Flappy Bird
+Mật khẩu dùng scrypt với salt riêng; tài khoản lưu lâu dài trong collection `users` của MongoDB. JWT ký HS256 bằng thư viện jose, bắt buộc kiểm tra chữ ký, issuer, audience, subject, jti và thời hạn 7 ngày. Token nằm trong cookie HttpOnly, SameSite=Strict (Secure khi production), không lưu localStorage. Collection `sessions` chỉ giữ hash token để thu hồi ngay khi đăng xuất, đồng thời ngắt socket tương ứng. API dùng kiểm tra origin/header và rate limit; socket xác thực cùng JWT, kiểm tra quyền theo tài khoản, giới hạn 40 lệnh/giây và payload đầu vào 8KB.
 
-Xem [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Dùng sprite, âm thanh và chuyển logic bird/pipes/physics của repo được chỉ định sang server; thay state/menu single-player bằng vòng đời trận multiplayer. Mã upstream được giữ lại để so sánh, không phải một iframe game độc lập gửi điểm tùy ý.
+`npm run auth:setup` tạo khóa ngẫu nhiên 32 byte trong `.env` và giữ nguyên nếu đã có. Không commit hoặc chia sẻ khóa; mọi instance phải dùng cùng khóa. Server từ chối khởi động nếu thiếu khóa hoặc khóa sai định dạng. Đổi khóa làm hết hiệu lực tất cả JWT đã cấp. Sau cập nhật từ phiên token cũ, đăng nhập lại một lần; tài khoản và lịch sử vẫn giữ nguyên. JWT không chứa mật khẩu, tên hay avatar.
+
+MongoDB bắt buộc để đăng nhập và lưu dữ liệu. Phòng đang chơi giữ trong RAM, mất khi server restart. Tối đa 100 phòng mỗi tiến trình là giới hạn cấu hình, chưa phải cam kết tải đã benchmark. Flappy/Tetris gửi snapshot khoảng 15Hz; Pikachu chỉ gửi khi trạng thái thay đổi. Canvas vẽ bằng requestAnimationFrame. Cần thiết kế phân phối phòng trước khi chạy nhiều backend.
+
+### MongoDB Atlas và Vercel
+
+Đặt `MONGODB_URI`, `JWT_SECRET`, `NODE_ENV=production` và `APP_ORIGIN` trong Vercel Environment Variables, sau đó redeploy. URI Atlas phải chỉ rõ database `/playroom`. Kết nối Mongoose được cache theo function instance và middleware sẽ đợi cold-start connection hoàn tất. Kiểm tra bằng `GET /api/health`; kết quả hợp lệ có `database: "connected"` và `databaseName: "playroom"`.
+
+Atlas Network Access phải cho phép IP outbound của Vercel. Dùng `0.0.0.0/0` chỉ phù hợp đồ án/thử nghiệm với database user và mật khẩu mạnh; production nên dùng static egress/private networking. Không commit URI, mật khẩu Atlas hoặc JWT secret.
+
+Xem tài liệu có thể dùng cho báo cáo Word tại [docs/BAO_CAO_KY_THUAT.md](docs/BAO_CAO_KY_THUAT.md).
+
+Kiểm tra dữ liệu Atlas bằng `npm run db:audit`. Chuyển dữ liệu từ MongoDB local mặc định sang Atlas bằng `npm run db:migrate:atlas`; script chỉ chuyển session còn hạn và match có tài khoản sở hữu, có thể chạy lại mà không tạo bản ghi trùng.
+
+Xem [kiểm thử](docs/VALIDATION.md) và [nguồn bên thứ ba](THIRD_PARTY_NOTICES.md).
+
+## Gợi ý phát triển
+
+Xem [ý tưởng chức năng và giao diện](docs/IDEAS.md). Luật đấu lượt dùng chung trong shared/pikachuDuel.js; server kiểm tra quyền theo lượt và local dùng cùng cách xếp hạng.

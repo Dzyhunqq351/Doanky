@@ -1,0 +1,302 @@
+/* Fullscreen rules deliberately outrank the embedded game breakpoints. */
+.fullscreen-clock {
+  display: none;
+}
+.fullscreen-hud {
+  display: none;
+}
+.game-fullscreen > .fullscreen-hud {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: 50%;
+  z-index: 22;
+  display: grid;
+  min-width: 128px;
+  padding: 7px 14px 8px;
+  transform: translateX(-50%);
+  border: 1px solid #ffffff42;
+  border-radius: 12px;
+  color: #fff;
+  background: #08182bea;
+  box-shadow: 0 5px 20px #0006;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.game-fullscreen > .fullscreen-hud small {
+  color: #afc7e8;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .09em;
+}
+.game-fullscreen > .fullscreen-hud strong {
+  font-size: clamp(19px, 2.5vw, 25px);
+  line-height: 1.1;
+}
+.local-game.flappy .flappy-surface {
+  width: 100%;
+}
+.local-game.flappy .local-flappy-canvas {
+  width: 100%;
+  height: clamp(400px, 65dvh, 760px);
+  aspect-ratio: auto;
+}
+.local-game.solo.flappy .local-boards {
+  width: 100%;
+  max-width: 1100px;
+}
+.local-game.solo.pikachu .local-boards {
+  width: 100%;
+  max-width: 1100px;
+}
+.local-game.game-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  width: 100%;
+  height: 100dvh;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  background: #0c1c30;
+  color: #fff;
+}
+.game-fullscreen > .local-game-header,
+.game-fullscreen > .local-help,
+.game-fullscreen > .game-guide,
+.game-fullscreen > .online-roster,
+.game-fullscreen > .tag {
+  display: none;
+}
+.local-game.game-fullscreen > .local-boards,
+.local-game.game-fullscreen.solo > .local-boards {
+  width: 100%;
+  max-width: none;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  gap: 2px;
+  background: transparent;
+}
+.game-fullscreen .local-player {
+  min-height: 0;
+}
+.game-fullscreen .local-player-head {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  left: 14px;
+  right: auto;
+  z-index: 6;
+  width: max-content;
+  max-width: calc(45% - 20px);
+  padding: 8px 12px;
+  background: #0c1c30c9;
+  border-radius: 8px;
+  pointer-events: none;
+}
+.game-fullscreen.flappy .flappy-surface {
+  width: 100%;
+  height: 100dvh;
+  max-width: none;
+}
+.game-fullscreen.flappy .local-flappy-canvas {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  min-height: 0;
+  aspect-ratio: auto;
+  border: 0;
+}
+.game-fullscreen .flappy-powers {
+  top: 68px;
+}
+.game-fullscreen .buff-notice {
+  top: 105px;
+}
+.game-fullscreen > .local-controls {
+  position: fixed;
+  z-index: 20;
+  top: auto;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 10px;
+  border-radius: 12px;
+  background: #0c1c30f2;
+  box-shadow: 0 4px 18px #0005;
+  transition: opacity 0.18s;
+}
+.game-fullscreen .local-controls button {
+  min-height: 44px;
+  width: auto;
+}
+.game-fullscreen .local-controls .text-button {
+  color: #dce8ff;
+}
+.game-fullscreen .local-controls .secondary { color: #162337; }
+.game-fullscreen .local-controls input { color: #162337; }
+.game-fullscreen .local-controls button:disabled { opacity: .5; }
+.game-fullscreen.controls-hidden > .local-controls:not(:focus-within):not(:hover) {
+  opacity: 0;
+  pointer-events: none;
+}
+.fullscreen-menu {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  right: 12px;
+  z-index: 21;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #ffffff50;
+  border-radius: 10px;
+  color: white;
+  background: #0c1c30de;
+}
+.game-fullscreen > .local-results {
+  position: absolute;
+  inset: 70px 12px auto;
+  z-index: 15;
+  max-height: calc(100dvh - 170px);
+  overflow: auto;
+  color: #162337;
+  background: white;
+}
+.game-fullscreen > .notice {
+  position: absolute;
+  top: 65px;
+  z-index: 25;
+}
+.game-fullscreen > .ranking-select {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: 12px;
+  z-index: 21;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  margin: 0;
+  padding: 7px 9px;
+  border: 1px solid #ffffff35;
+  border-radius: 10px;
+  color: #dce8ff;
+  background: #08182be8;
+}
+.game-fullscreen > .ranking-select select {
+  width: auto;
+  padding: 7px 9px;
+}
+.game-fullscreen .local-overlay strong {
+  font-size: clamp(28px, 5vmin, 48px);
+}
+.local-game.game-fullscreen.tetris .tetris-player {
+  padding: 64px 10px 74px;
+}
+.local-game.game-fullscreen.tetris .tetris-machine {
+  width: 100%;
+  max-width: none;
+  grid-template-columns: minmax(36px, 76px) minmax(0, min(38dvh, 50vw - 110px)) minmax(36px, 76px);
+  gap: 8px;
+  justify-content: center;
+}
+.local-game.game-fullscreen.tetris.solo .tetris-machine {
+  grid-template-columns: minmax(36px, 86px) minmax(0, min(38dvh, 100vw - 210px)) minmax(36px, 86px);
+}
+.local-game.game-fullscreen.tetris .tet-well {
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  aspect-ratio: 1 / 2;
+}
+.local-game.game-fullscreen.tetris .tet-side {
+  width: auto;
+}
+.local-game.game-fullscreen.tetris .tet-controls {
+  position: static;
+  margin: 12px 0 0;
+  padding: 0;
+  background: transparent;
+}
+.local-game.game-fullscreen.tetris .tet-controls button {
+  min-height: 44px;
+}
+.local-game.game-fullscreen.pikachu .pikachu-play {
+  width: min(100%, calc((100dvh - 185px) * 1.5));
+  max-width: none;
+  margin: 58px auto 90px;
+  padding: 0 8px;
+}
+.local-game.game-fullscreen.pikachu .pika-board-wrap {
+  padding: 8px;
+  box-shadow: none;
+}
+.local-game.game-fullscreen.pikachu .arcade-instructions {
+  display: none;
+}
+.local-game.game-fullscreen.pikachu .pika-tools {
+  position: fixed;
+  top: max(76px, calc(env(safe-area-inset-top) + 64px));
+  right: 12px;
+  z-index: 19;
+  display: grid;
+  width: 154px;
+  margin: 0;
+  padding: 8px;
+  gap: 8px;
+  border: 1px solid #ffffff35;
+  border-radius: 12px;
+  background: #08182be8;
+  box-shadow: 0 5px 20px #0005;
+}
+.local-game.game-fullscreen.pikachu .pika-tools button {
+  width: 100%;
+  min-height: 48px;
+  justify-content: center;
+}
+.game-fullscreen .turn-status {
+  padding: 60px 16px 0;
+}
+.game-fullscreen .turn-status + .local-player .pikachu-play {
+  margin-top: 0;
+}
+@media (max-width: 760px) {
+  .game-fullscreen > .ranking-select {
+    top: max(68px, calc(env(safe-area-inset-top) + 56px));
+  }
+  .game-fullscreen .local-player-head {
+    top: max(68px, calc(env(safe-area-inset-top) + 56px));
+    max-width: calc(100% - 28px);
+  }
+  .local-game.game-fullscreen.pikachu .pikachu-play {
+    margin-top: 108px;
+  }
+  .local-game.game-fullscreen.pikachu .pika-tools {
+    top: auto;
+    right: 10px;
+    bottom: max(76px, calc(env(safe-area-inset-bottom) + 68px));
+    left: 10px;
+    display: flex;
+    width: auto;
+  }
+  .local-game.game-fullscreen.pikachu .pika-tools button {
+    flex: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-fullscreen > .local-controls {
+    transition: none;
+  }
+}

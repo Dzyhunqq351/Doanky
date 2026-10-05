@@ -1,0 +1,492 @@
+.pika-feature {
+  background: #103e32;
+}
+.tet-feature {
+  background: #0d2248;
+}
+.pika-mini {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  min-width: 156px;
+  transform: rotate(-5deg);
+}
+.pika-mini span {
+  background: transparent;
+  border-radius: 5px;
+  font-size: 26px;
+  padding: 0;
+  box-shadow: none;
+  text-align: center;
+  aspect-ratio: 1;
+}
+.tet-mini {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  width: 130px;
+  min-width: 130px;
+  transform: rotate(5deg);
+  gap: 2px;
+}
+.tet-mini i {
+  aspect-ratio: 1;
+}
+.arcade-page button:focus-visible,
+.pika-tile:focus-visible {
+  outline: 3px solid #fde661;
+  outline-offset: 3px;
+}
+.pikachu-play {
+  max-width: 980px;
+  margin: auto;
+  padding: 10px;
+}
+.pika-progress {
+  height: 8px;
+  background: #ffffff20;
+  border-radius: 8px;
+  margin: 0 5.6% 12px;
+  overflow: hidden;
+}
+.pika-progress span {
+  display: block;
+  height: 100%;
+  background: #f6d75d;
+  transition: width 0.2s;
+}
+.pika-board-wrap {
+  position: relative;
+  padding: 4.5%;
+  border-radius: 12px;
+  background: radial-gradient(circle at 50% 0, #5e2c74, #28163d 58%, #140c23);
+  box-shadow:
+    inset 0 0 42px #0b0615,
+    0 18px 45px #05020b66;
+}
+.pika-board {
+  display: grid;
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+  gap: 3px;
+}
+.arcade-page .pika-tile,
+.local-game .pika-tile,
+.online-game .pika-tile {
+  padding: 2px;
+  aspect-ratio: 0.86;
+  border-radius: 4px;
+  border: 0;
+  background: transparent;
+  color: #192f25;
+  font-size: clamp(16px, 2.65vw, 36px);
+  box-shadow: none;
+  touch-action: manipulation;
+  transition:
+    transform 120ms ease,
+    filter 120ms ease;
+}
+.pika-tile .classic-tile {
+  transition:
+    transform 140ms ease,
+    filter 140ms ease,
+    box-shadow 140ms ease;
+}
+.arcade-page .pika-tile:disabled,
+.local-game .pika-tile:disabled,
+.online-game .pika-tile:disabled {
+  opacity: 1;
+}
+.arcade-page .pika-tile:hover:not(:disabled),
+.local-game .pika-tile:hover:not(:disabled),
+.online-game .pika-tile:hover:not(:disabled) {
+  background: #ffffd8;
+  transform: translateY(-2px);
+}
+.arcade-page .pika-tile.empty,
+.local-game .pika-tile.empty,
+.online-game .pika-tile.empty {
+  visibility: hidden;
+}
+.arcade-page .pika-tile.picked .classic-tile,
+.local-game .pika-tile.picked .classic-tile,
+.online-game .pika-tile.picked .classic-tile {
+  outline: 3px solid #fdff78;
+  filter: brightness(1.08);
+  transform: translateY(-2px) scale(1.045);
+  box-shadow:
+    inset 0 -2px 0 #c7a97d,
+    0 5px 12px #fde66170;
+}
+.pika-tile.matching .classic-tile {
+  outline: 3px solid #78ffd6;
+  filter: brightness(1.16);
+  transform: scale(0.93);
+}
+.pika-tile.rejected .classic-tile {
+  outline: 3px solid #fb7185;
+  animation: pika-reject 220ms ease;
+}
+.arcade-page .pika-tile.hinted .classic-tile,
+.local-game .pika-tile.hinted .classic-tile,
+.online-game .pika-tile.hinted .classic-tile {
+  outline: 3px solid #6df59e;
+}
+.pika-path {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+  filter: drop-shadow(0 0 3px #baffa3);
+}
+@keyframes pika-reject {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  35% {
+    transform: translateX(-3px);
+  }
+  70% {
+    transform: translateX(3px);
+  }
+}
+.pika-tools {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin: 15px 0;
+}
+.pika-tools b {
+  background: #fff2;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+}
+.pika-tools small {
+  font-size: 11px;
+  color: #cde2da;
+}
+.pika-opponents {
+  max-width: 850px;
+  margin: 24px auto;
+  border-top: 1px solid #fff3;
+  padding-top: 18px;
+}
+.pika-opponents > div {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 13px;
+}
+.pika-opponents > div > strong {
+  margin-right: auto;
+}
+.tetris-player {
+  min-width: 0;
+}
+.tetris-player h3 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 24px;
+  margin: 4px 0 18px;
+  overflow-wrap: anywhere;
+}
+.tetris-player h3 small {
+  font-size: 10px;
+  background: #2a7092;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.tetris-machine {
+  display: grid;
+  grid-template-columns: minmax(55px, 1fr) minmax(120px, 3fr) minmax(55px, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+.tet-well {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  grid-template-rows: repeat(20, minmax(0, 1fr));
+  aspect-ratio: 1/2;
+  border: 3px solid #648cb7;
+  background: #040e1e;
+  box-shadow:
+    0 0 0 5px #122d52,
+    0 0 24px #0e92c32e;
+  position: relative;
+}
+.tet-cell {
+  display: block;
+  border: 1px solid #243343;
+  background: #07131f;
+}
+.tet-cell.c1 {
+  background: #4bddf7;
+  border-color: #a9f5ff #138b9c #167786 #a9f5ff;
+}
+.tet-cell.c2 {
+  background: #437af2;
+  border-color: #aac4ff #1b3997 #193796 #aac4ff;
+}
+.tet-cell.c3 {
+  background: #ffa443;
+  border-color: #ffe1a7 #ab5b1e #a65313 #ffe1a7;
+}
+.tet-cell.c4 {
+  background: #fbe94e;
+  border-color: #ffffb2 #a4911b #a4911b #ffffb2;
+}
+.tet-cell.c5 {
+  background: #70e568;
+  border-color: #caffb8 #379239 #379239 #caffb8;
+}
+.tet-cell.c6 {
+  background: #bf6eea;
+  border-color: #f0c2ff #8233aa #8233aa #f0c2ff;
+}
+.tet-cell.c7 {
+  background: #ff6479;
+  border-color: #ffbec7 #aa2c47 #aa2c47 #ffbec7;
+}
+.tet-cell.c0 {
+  background: transparent;
+}
+.tet-cell.ghost {
+  background: #ffffff12;
+  border: 1px solid #b7d1e680;
+}
+.tet-side {
+  background: #0c2d55;
+  border: 1px solid #357fb5;
+  min-height: 75px;
+}
+.tet-side h4 {
+  margin: 0;
+  background: #17629b;
+  padding: 5px;
+  font-size: 10px;
+  color: #e4f4ff;
+}
+.piece-preview {
+  display: grid;
+  gap: 1px;
+  margin: 14px 6px;
+  height: 36px;
+  align-content: center;
+}
+.piece-preview .tet-cell {
+  aspect-ratio: 1;
+  min-height: 7px;
+}
+.piece-preview .c0 {
+  border-color: transparent;
+}
+.tet-level {
+  margin-top: 100px;
+}
+.tet-level strong {
+  display: block;
+  text-align: center;
+  font-size: 28px;
+  margin: 12px;
+}
+.tet-level p {
+  text-align: center;
+  font-size: 11px;
+  color: #b5d0e5;
+  margin: 8px;
+}
+.tet-points {
+  text-align: center;
+  margin-top: 12px;
+}
+.tet-points strong {
+  display: block;
+  font-size: 18px;
+  padding: 12px 3px;
+}
+.tet-ended {
+  position: absolute;
+  inset: 35% 0 auto;
+  background: #061625eb;
+  color: #edf5ff;
+  font-size: 14px;
+  text-align: center;
+  padding: 20px 5px;
+}
+.tet-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 20px;
+}
+.arcade-page .tet-controls button {
+  padding: 10px 14px;
+  background: #153c66;
+  border-color: #4c7caf;
+  touch-action: manipulation;
+  user-select: none;
+}
+@media (min-width: 1500px) {
+  .tetris-machine {
+    grid-template-columns: 85px minmax(150px, 280px) 85px;
+    justify-content: center;
+  }
+  .tet-well {
+    max-height: 560px;
+  }
+}
+@media (max-width: 1050px) {
+  .pika-board {
+    gap: 2px;
+  }
+  .pika-board-wrap {
+    padding: 5.555% 4%;
+  }
+  .tet-side h4 {
+    font-size: 9px;
+  }
+  .tet-controls {
+    gap: 4px;
+  }
+  .arcade-page .tet-controls button {
+    padding: 10px;
+  }
+  .piece-preview {
+    margin: 10px 4px;
+  }
+}
+@media (max-width: 640px) {
+  .pika-mini {
+    min-width: 96px;
+    width: 96px;
+    gap: 2px;
+  }
+  .pika-mini span {
+    font-size: 19px;
+    padding: 2px;
+  }
+  .tet-mini {
+    width: 90px;
+    min-width: 90px;
+  }
+  .pika-board-wrap {
+    padding: 5.555% 1%;
+  }
+  .pika-board {
+    gap: 2px;
+  }
+  .arcade-page .pika-tile,
+  .local-game .pika-tile,
+  .online-game .pika-tile {
+    font-size: 17px;
+    border-radius: 3px;
+  }
+  .pika-tools {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .arcade-page .pika-tools button,
+  .local-game .pika-tools button,
+  .online-game .pika-tools button {
+    min-height: 44px;
+    padding: 10px;
+    font-size: 12px;
+    gap: 6px;
+  }
+  .pika-tools small {
+    font-size: 9px;
+  }
+  .pika-opponents {
+    padding: 14px 10px;
+  }
+  .tetris-machine {
+    grid-template-columns: minmax(50px, 1fr) minmax(150px, 2.8fr) minmax(50px, 1fr);
+    gap: 8px;
+  }
+  .tet-well {
+    max-height: 460px;
+  }
+  .tet-side h4 {
+    font-size: 9px;
+  }
+  .tetris-player h3 {
+    font-size: 19px;
+  }
+}
+@media (max-width: 430px) {
+  .pikachu-play {
+    padding: 4px;
+  }
+  .pika-progress {
+    margin-inline: 2px;
+  }
+  .pika-board-wrap {
+    border-radius: 7px;
+  }
+  .classic-tile {
+    border-radius: 3px;
+    box-shadow: inset 0 -1px 0 #c7a97d;
+  }
+  .pika-tools {
+    margin-block: 10px;
+  }
+  .pika-tools button {
+    flex: 1;
+  }
+  .arcade-instructions {
+    font-size: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pika-progress span,
+  .arcade-page button {
+    transition: none;
+  }
+}
+
+.pika-board {
+  position: relative;
+}
+.pika-board .pika-path {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+.tetris-player:focus {
+  outline: none;
+}
+.tetris-player:focus-visible .tet-well {
+  outline: 2px solid #8edcff;
+  outline-offset: 5px;
+}
+
+.piece-preview {
+  height: auto;
+  min-height: 38px;
+  margin: 12px auto;
+}
+.piece-preview .tet-cell {
+  min-height: 0;
+}
+.tetris-machine {
+  grid-template-columns: minmax(50px, 76px) minmax(120px, min(28vh, 260px)) minmax(50px, 76px);
+  justify-content: center;
+}
+.tet-well {
+  max-height: none;
+}
+.tet-next .piece-preview {
+  margin: 10px auto;
+}
+.tet-level {
+  margin-top: 70px;
+}
