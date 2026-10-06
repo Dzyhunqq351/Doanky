@@ -14,7 +14,7 @@ Hệ thống hiện tích hợp 3 minigame:
 
 ## Demo
 
-Website: https://doanky-1.vercel.app
+Website: https://playroom-minigame.vercel.app
 
 ## Chức năng chính
 
