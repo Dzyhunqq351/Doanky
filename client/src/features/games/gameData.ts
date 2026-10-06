@@ -43,4 +43,11 @@ export const games = [
   },
 ] as const;
 
-export type GameItem = (typeof games)[number];
+export type GameItem = Omit<(typeof games)[number], 'description'> & { description: string };
+export type GamePolicy = {
+  game: string;
+  enabled: boolean;
+  description: string;
+  maintenanceMessage: string;
+  modes: string[];
+};

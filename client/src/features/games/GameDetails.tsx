@@ -3,7 +3,7 @@ import { Bot, LoaderCircle, Play, Trophy, Users, X } from 'lucide-react';
 import type { LocalGame, LocalMode } from '../../../../shared/localMatch.js';
 import Avatar from '../../components/Avatar';
 import { api } from '../../lib/api';
-import type { GameItem } from './gameData';
+import type { GameItem, GamePolicy } from './gameData';
 import GameGuide from './GameGuide';
 import BuffMeta from './BuffMeta';
 
@@ -22,14 +22,17 @@ export default function GameDetails({
   launch,
   createRoom,
   onClose,
+  policy,
 }: {
   game: GameItem;
   launch: (game: LocalGame, mode: LocalMode) => void;
   createRoom?: (game: LocalGame) => void;
   onClose: () => void;
+  policy?: GamePolicy;
 }) {
   const [board, setBoard] = useState<Leaderboard | null>(null);
   const [error, setError] = useState('');
+  const [starting, setStarting] = useState(false);
   const Icon = game.icon;
 
   useEffect(() => {
@@ -46,13 +49,23 @@ export default function GameDetails({
     };
   }, [game.id, onClose]);
 
-  const start = (mode: LocalMode) => {
-    onClose();
-    launch(game.id, mode);
+  const allowed = (mode: string) =>
+    !starting && policy?.enabled !== false && (!policy || policy.modes.includes(mode));
+  const start = async (mode: LocalMode | 'online') => {
+    setStarting(true);
+    try {
+      await api(`/games/${game.id}/access`, 'POST', { mode });
+      onClose();
+      if (mode === 'online') createRoom?.(game.id);
+      else launch(game.id, mode);
+    } catch (reason) {
+      setError((reason as Error).message);
+    } finally {
+      setStarting(false);
+    }
   };
   const openRoom = () => {
-    onClose();
-    createRoom?.(game.id);
+    void start('online');
   };
 
   return (
@@ -84,21 +97,34 @@ export default function GameDetails({
           </h2>
           <p>{game.description}</p>
           <BuffMeta game={game} />
+          {policy?.enabled === false && <p role="status">{policy.maintenanceMessage}</p>}
           <div className="game-detail-actions">
-            <button className="primary" onClick={() => start('single')}>
+            <button
+              className="primary"
+              disabled={!allowed('single')}
+              onClick={() => void start('single')}
+            >
               <Play size={17} /> Chơi đơn
             </button>
             {createRoom && (
-              <button className="secondary" onClick={openRoom}>
+              <button className="secondary" disabled={!allowed('online')} onClick={openRoom}>
                 <Users size={17} /> Tạo phòng đấu
               </button>
             )}
-            <button className="secondary" onClick={() => start('local')}>
+            <button
+              className="secondary"
+              disabled={!allowed('local')}
+              onClick={() => void start('local')}
+            >
               <Users size={17} />
               {game.id === 'pikachu' ? 'Thay phiên · 7 phút/người' : '2 người cùng máy'}
             </button>
             {game.id !== 'pikachu' && (
-              <button className="text-button" onClick={() => start('bot')}>
+              <button
+                className="text-button"
+                disabled={!allowed('bot')}
+                onClick={() => void start('bot')}
+              >
                 <Bot size={16} /> Luyện với máy
               </button>
             )}

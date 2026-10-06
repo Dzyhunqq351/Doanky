@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Bird, LogOut } from 'lucide-react';
 import { api, type User } from './lib/api';
 import AuthScreen from './features/auth/AuthScreen';
@@ -12,6 +12,7 @@ import { useRooms } from './features/rooms/useRooms';
 import OnlineRoom from './features/rooms/OnlineRoom';
 import PlayerLobby from './features/rooms/PlayerLobby';
 type Selection = { game: Game; mode: LocalMode };
+const AdminDashboard = lazy(() => import('./features/admin/AdminDashboard'));
 export default function App() {
   const [user, setUser] = useState<User | null>(null),
     [loading, setLoading] = useState(true),
@@ -78,13 +79,30 @@ export default function App() {
         />
       </>
     );
+  if (location.pathname.replace(/\/$/, '') === '/admin')
+    return user.role === 'superadmin' ? (
+      <Suspense fallback={<p className="notice">Đang tải trang quản trị…</p>}>
+        <AdminDashboard user={user} logout={logout} />
+      </Suspense>
+    ) : (
+      <main className="app">
+        <h1>Không có quyền truy cập</h1>
+        <p>Trang này dành cho quản trị viên.</p>
+        <a className="primary" href="/">
+          Về Playroom
+        </a>
+      </main>
+    );
   return (
     <div className="app">
       <header className="header">
         <button
           className="logo logo-button"
           onClick={() => {
-            if (!game) setPage('overview');
+            if ((game || online.room) && !window.confirm('Rời trò chơi để về sảnh?')) return;
+            if (online.room) void online.send('room:leave');
+            setGame(null);
+            setPage('overview');
           }}
         >
           <span className="logo-icon">
@@ -110,6 +128,11 @@ export default function App() {
           </nav>
         )}
         <div className="account-info">
+          {user.role === 'superadmin' && !game && !online.room && (
+            <a href="/admin" className="secondary compact">
+              Quản trị
+            </a>
+          )}
           <div className={`nav-status ${online.connected ? 'online' : ''}`}>
             <strong>●</strong>
             <span>{online.connected ? 'đã kết nối' : 'đang kết nối'}</span>

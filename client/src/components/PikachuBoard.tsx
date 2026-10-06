@@ -122,7 +122,13 @@ export default function PikachuBoard({
               disabled={!v || disabled}
               aria-label={`Hàng ${Math.floor(i / 16) + 1}, cột ${(i % 16) + 1}: ${v ? creatures[v - 1] : 'trống'}`}
               aria-pressed={selected === i}
-              onClick={() => void pick(i)}
+              onPointerDown={(event) => {
+                event.preventDefault();
+                void pick(i);
+              }}
+              onClick={(event) => {
+                if (event.detail === 0) void pick(i);
+              }}
             >
               {v ? <ClassicTile index={v - 1} /> : ''}
             </button>

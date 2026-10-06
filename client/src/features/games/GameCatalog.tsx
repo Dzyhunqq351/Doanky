@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import type { LocalGame, LocalMode } from '../../../../shared/localMatch.js';
 import GameDetails from './GameDetails';
 import BuffMeta from './BuffMeta';
-import { games, type GameItem } from './gameData';
+import { games, type GameItem, type GamePolicy } from './gameData';
+import { api } from '../../lib/api';
 
 export default function GameCatalog({
   launch,
@@ -13,6 +14,17 @@ export default function GameCatalog({
   createRoom?: (g: LocalGame) => void;
 }) {
   const [selected, setSelected] = useState<GameItem | null>(null);
+  const [settings, setSettings] = useState<GamePolicy[]>([]);
+  useEffect(() => {
+    const refresh = () => {
+      void api<{ games: GamePolicy[] }>('/games')
+        .then((data) => setSettings(data.games || []))
+        .catch(() => {});
+    };
+    refresh();
+    window.addEventListener('focus', refresh);
+    return () => window.removeEventListener('focus', refresh);
+  }, []);
   return (
     <section className={`game-catalog ${createRoom ? 'compact-catalog' : ''}`}>
       <div className="hub-title">
@@ -24,7 +36,9 @@ export default function GameCatalog({
       </div>
       <div className="game-cards">
         {games.map((game) => {
-          const { id, title, titleColor, icon: Icon, description } = game;
+          const { id, title, titleColor, icon: Icon } = game;
+          const policy = settings.find((s) => s.game === id);
+          const description = policy?.description || game.description;
           return (
             <article
               className={`game-card game-card-preview ${id}`}
@@ -32,11 +46,11 @@ export default function GameCatalog({
               role="button"
               tabIndex={0}
               aria-label={`Mở chi tiết ${title}`}
-              onClick={() => setSelected(games.find((game) => game.id === id) ?? null)}
+              onClick={() => setSelected({ ...game, description })}
               onKeyDown={(event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                   event.preventDefault();
-                  setSelected(games.find((game) => game.id === id) ?? null);
+                  setSelected({ ...game, description });
                 }
               }}
             >
@@ -48,6 +62,7 @@ export default function GameCatalog({
               </div>
               <h2 style={{ color: titleColor }}>{title}</h2>
               <p>{description}</p>
+              {policy?.enabled === false && <span className="tag">Đang bảo trì</span>}
 
               <BuffMeta game={game} />
               <div className="game-card-open">
@@ -64,6 +79,7 @@ export default function GameCatalog({
       {selected && (
         <GameDetails
           game={selected}
+          policy={settings.find((s) => s.game === selected.id)}
           launch={launch}
           createRoom={createRoom}
           onClose={() => setSelected(null)}

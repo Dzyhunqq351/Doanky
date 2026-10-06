@@ -78,7 +78,8 @@ export function useLocalGame(game: LocalGame, mode: LocalMode, names: string[]) 
   useEffect(() => {
     let handle = 0,
       last = performance.now(),
-      paint = 0;
+      paint = 0,
+      previousView = '';
     const loop = (now: number) => {
       const dt = now - last;
       last = now;
@@ -105,9 +106,22 @@ export function useLocalGame(game: LocalGame, mode: LocalMode, names: string[]) 
         if (p.finishedAt !== null && !before[i].done && game === 'flappy')
           audioRef.current.play('hit');
       });
-      if (now - paint > 50) {
+      // Canvas reads the live Flappy state at display refresh rate. React only
+      // updates HUD seconds, phase, or visible board changes, not 144 tiles 20x/s.
+      const view = `${match.phase}:${match.turn}:${match.players
+        .map((p) => {
+          const s = p.state as {
+            score: number;
+            active?: { x: number; y: number; type: string };
+            revision?: number;
+          };
+          return `${s.score},${p.finishedAt},${s.revision},${s.active?.x},${s.active?.y},${s.active?.type}`;
+        })
+        .join('|')}`;
+      if (now - paint >= 250 || view !== previousView) {
         render((v) => v + 1);
         paint = now;
+        previousView = view;
       }
       handle = requestAnimationFrame(loop);
     };

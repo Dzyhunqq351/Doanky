@@ -17,7 +17,7 @@ export function validatePassword(value) {
   return value;
 }
 const hashCode = (id, code) => createHmac('sha256', jwtKey()).update(`${id}:${code}`).digest('hex');
-async function revokeAll(userId) {
+export async function revokeAll(userId) {
   const sessions = await Session.find({ userId }).lean();
   await Session.deleteMany({ userId });
   sessions.forEach((s) => authEvents.emit('revoked', s.tokenHash));

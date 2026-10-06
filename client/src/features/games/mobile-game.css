@@ -1,0 +1,639 @@
+/* Gameplay viewport. Imported after embedded layouts so fullscreen has one owner. */
+.fullscreen-exit {
+  display: none;
+}
+.game-hud {
+  display: none;
+}
+.local-game.game-fullscreen > .game-hud {
+  position: absolute;
+  z-index: 9;
+  top: max(6px, env(safe-area-inset-top));
+  left: max(8px, env(safe-area-inset-left));
+  right: max(60px, calc(env(safe-area-inset-right) + 52px));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 100px minmax(0, 1fr);
+  grid-template-areas: 'player0 clock player1';
+  align-items: start;
+  gap: 8px;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+.game-hud-clock {
+  grid-area: clock;
+  display: grid;
+  place-content: center;
+  min-height: 44px;
+  padding: 4px 8px;
+  color: #fff;
+  background: #08182bea;
+  border: 1px solid #ffffff42;
+  border-radius: 8px;
+  text-align: center;
+}
+.game-hud-clock small {
+  color: #c1d7ec;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.game-hud-clock strong {
+  font-size: 22px;
+  line-height: 1.1;
+}
+.game-hud-player {
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  width: max-content;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 4px 10px;
+  color: #fff;
+  background: #0c1c30e8;
+  border: 1px solid #52708a;
+  border-radius: 8px;
+  text-align: left;
+}
+.game-hud .hud-slot-0 {
+  grid-area: player0;
+}
+.game-hud .hud-slot-1 {
+  grid-area: player1;
+  justify-self: end;
+}
+.game-hud-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 1.2;
+}
+.game-hud-score {
+  white-space: nowrap;
+  font-size: 11px;
+  color: #ffe977;
+  line-height: 1.2;
+}
+.game-hud-score b {
+  font-size: 19px;
+}
+.game-hud .is-current {
+  border-color: #cbd975;
+}
+.game-hud button {
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+.local-game.game-fullscreen .local-player-head {
+  display: none;
+}
+.local-game.phone-game.game-fullscreen > .game-hud.single-hud {
+  grid-template-columns: minmax(0, 1fr) 90px;
+  grid-template-areas: 'player0 clock';
+}
+.local-game.phone-game.game-fullscreen > .game-hud.duel-hud {
+  right: max(8px, env(safe-area-inset-right));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas: 'clock clock' 'player0 player1';
+  gap: 6px;
+}
+.phone-game .duel-hud .game-hud-clock {
+  justify-self: center;
+  width: 100px;
+}
+.phone-game .duel-hud .game-hud-player {
+  width: 100%;
+}
+.phone-game .game-hud-name {
+  font-size: 11px;
+}
+.phone-game .game-hud-score b {
+  font-size: 17px;
+}
+.local-game.phone-game.game-fullscreen:has(> .duel-hud) {
+  --hud-height: calc(108px + env(safe-area-inset-top, 0px));
+}
+.local-game.game-fullscreen {
+  top: var(--game-top, 0px);
+  bottom: auto;
+  width: var(--game-width, 100vw);
+  height: var(--game-height, 100dvh);
+  overflow: hidden;
+  isolation: isolate;
+  overscroll-behavior: none;
+  --hud-height: calc(58px + env(safe-area-inset-top, 0px));
+  --foot-height: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+.local-game.game-fullscreen > .local-boards,
+.local-game.game-fullscreen.solo > .local-boards {
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  width: 100%;
+}
+.local-game.game-fullscreen .local-player {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+.local-game.game-fullscreen.flappy .flappy-surface {
+  height: 100%;
+}
+.local-game.game-fullscreen.flappy .local-flappy-canvas {
+  height: 100%;
+  width: 100%;
+}
+.local-game.game-fullscreen > .local-controls {
+  position: absolute;
+  top: calc(var(--hud-height) + 4px);
+  bottom: auto;
+  left: auto;
+  right: max(8px, env(safe-area-inset-right));
+  transform: none;
+  max-width: min(360px, calc(100% - 16px));
+  width: 320px;
+  max-height: calc(100% - var(--hud-height) - 12px);
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  background: #10263c;
+  border: 1px solid #52708a;
+  box-shadow: none;
+  backdrop-filter: none;
+  padding: 8px;
+  gap: 6px;
+}
+.local-game.game-fullscreen > .local-controls button {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px;
+  font-size: 12px;
+  justify-content: center;
+  box-shadow: none;
+}
+.local-game.game-fullscreen > .local-controls label,
+.local-game.game-fullscreen > .local-controls > span {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+.local-game.game-fullscreen > .local-controls button:disabled {
+  display: none;
+}
+.local-game.game-fullscreen > .local-controls .online-time {
+  display: none;
+}
+.local-game.game-fullscreen.controls-hidden > .local-controls {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+.game-fullscreen .fullscreen-exit {
+  display: flex;
+}
+.game-fullscreen > .fullscreen-menu {
+  position: absolute;
+  top: max(6px, env(safe-area-inset-top));
+  right: max(8px, env(safe-area-inset-right));
+}
+.game-fullscreen > .fullscreen-hud {
+  position: absolute;
+  top: max(6px, env(safe-area-inset-top));
+  padding: 5px 10px;
+  min-width: 86px;
+  border-radius: 8px;
+  box-shadow: none;
+}
+.game-fullscreen > .fullscreen-hud strong {
+  font-size: 21px;
+}
+.game-fullscreen > .fullscreen-hud small {
+  font-size: 8px;
+  letter-spacing: 0.03em;
+}
+.local-game.game-fullscreen .local-player-head {
+  top: max(6px, env(safe-area-inset-top));
+  left: 8px;
+  padding: 6px 8px;
+  min-height: 40px;
+  max-width: calc(50% - 60px);
+  font-size: 11px;
+}
+.game-fullscreen .local-player-head strong {
+  font-size: 18px;
+  white-space: nowrap;
+}
+.game-fullscreen .flappy-powers {
+  top: calc(var(--hud-height) + 2px);
+}
+.game-fullscreen .buff-notice {
+  top: calc(var(--hud-height) + 34px);
+  box-shadow: none;
+}
+.game-fullscreen .buff-aura {
+  box-shadow: none;
+}
+.local-game.game-fullscreen > .local-results {
+  position: absolute;
+  inset: auto;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(620px, calc(100% - 24px));
+  max-height: calc(100% - var(--hud-height) - 20px);
+  margin: 0;
+  padding: 18px;
+  z-index: 18;
+  overscroll-behavior: contain;
+}
+.local-game.game-fullscreen.phase-results .pika-tools,
+.local-game.game-fullscreen.phase-results .tet-controls {
+  display: none;
+}
+.local-game.game-fullscreen > .turn-wait {
+  position: absolute;
+  top: 25%;
+  left: 12px;
+  right: 12px;
+  z-index: 10;
+  padding: 20px;
+}
+.local-game.game-fullscreen > .ranking-select {
+  top: auto;
+  bottom: 12px;
+  z-index: 10;
+}
+.local-game.game-fullscreen > .online-waiting {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+  color: #fff;
+  background: #102238;
+}
+.local-game.game-fullscreen > .online-waiting p {
+  color: #c1d7ec;
+}
+
+/* Fit the well to BOTH available dimensions, without shrinking its column to zero. */
+.local-game.game-fullscreen.tetris .tetris-player {
+  height: 100%;
+  padding: var(--hud-height) 10px var(--foot-height);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  container-type: size;
+}
+.local-game.game-fullscreen.tetris .tetris-machine {
+  --well-width: min(
+    calc((var(--game-height, 100dvh) - var(--hud-height) - var(--foot-height)) / 2),
+    calc((var(--game-width, 100vw) / 2) - 142px)
+  );
+  grid-template-columns: 54px var(--well-width) 54px;
+  width: 100%;
+  gap: 8px;
+  align-items: start;
+}
+.local-game.game-fullscreen.tetris.solo .tetris-machine,
+.local-game.game-fullscreen.tetris.phone-game .tetris-machine {
+  --well-width: min(
+    calc((var(--game-height, 100dvh) - var(--hud-height) - var(--foot-height)) / 2),
+    calc(var(--game-width, 100vw) - 140px)
+  );
+  grid-template-columns: 54px var(--well-width) 54px;
+}
+.local-game.game-fullscreen.tetris .tet-well {
+  width: var(--well-width);
+  height: calc(var(--well-width) * 2);
+  aspect-ratio: 1 / 2;
+  border-width: 2px;
+  box-shadow: 0 0 0 3px #122d52;
+}
+.local-game.game-fullscreen.tetris .tet-side {
+  width: 54px;
+  min-width: 0;
+}
+.local-game.game-fullscreen.tetris .tet-side h4 {
+  font-size: 8px;
+  padding: 5px 2px;
+}
+.local-game.game-fullscreen.tetris .tet-level {
+  margin-top: 18px;
+}
+.local-game.game-fullscreen.tetris .tet-side strong {
+  font-size: 18px;
+  margin: 6px;
+}
+.local-game.game-fullscreen.tetris .piece-preview {
+  width: calc(100% - 10px) !important;
+  margin: 8px 5px;
+  height: 28px;
+}
+.local-game.game-fullscreen.tetris .tet-points {
+  display: none;
+}
+.local-game.game-fullscreen.tetris .tet-controls {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: max(8px, env(safe-area-inset-bottom));
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  flex-wrap: nowrap;
+  justify-content: center;
+  background: #0c1c30;
+}
+.local-game.game-fullscreen.tetris .tet-controls button {
+  min-width: 42px;
+  min-height: 48px;
+  padding: 8px;
+  background: #1b3c5e;
+  color: #fff;
+  border: 1px solid #456889;
+  border-radius: 8px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  font-size: 15px;
+}
+.local-game.game-fullscreen.tetris .tet-controls button:active {
+  background: #3265a3;
+}
+
+/* Pikachu occupies a measured landscape rectangle, including border paths. */
+.local-game.game-fullscreen.pikachu .pikachu-play {
+  position: static;
+  --board-height: calc(var(--game-height, 100dvh) - var(--hud-height) - var(--foot-height) - 12px);
+  width: min(calc(100% - 20px), calc(var(--board-height) * 16 / 9));
+  max-width: none;
+  padding: 0;
+  margin: var(--hud-height) auto 0;
+}
+.local-game.game-fullscreen.pikachu .pika-board-wrap {
+  padding: 5px;
+  border-radius: 4px;
+  box-shadow: none;
+}
+.local-game.game-fullscreen.pikachu .pika-board {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  grid-template-rows: repeat(9, minmax(0, 1fr));
+  gap: 2px;
+}
+.local-game.game-fullscreen.pikachu .pika-tile {
+  aspect-ratio: auto;
+  min-height: 0;
+  padding: 0;
+}
+.local-game.game-fullscreen.pikachu .pika-progress {
+  height: 3px;
+  margin: 0 5px 4px;
+}
+.local-game.game-fullscreen.pikachu .pika-tools {
+  position: absolute;
+  top: auto;
+  left: 50%;
+  right: auto;
+  bottom: max(6px, env(safe-area-inset-bottom));
+  width: max-content;
+  max-width: calc(100% - 16px);
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  background: #102238;
+  border: 0;
+  box-shadow: none;
+  border-radius: 8px;
+}
+.local-game.game-fullscreen.pikachu .pika-tools button {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  width: auto;
+  padding: 6px 10px;
+  font-size: 12px;
+  gap: 6px;
+}
+.local-game.game-fullscreen.pikachu .pika-tools b {
+  width: 22px;
+  height: 22px;
+}
+.local-game.game-fullscreen.pikachu .pika-tools small {
+  font-size: 10px;
+}
+.local-game.game-fullscreen.pikachu .pika-tile {
+  position: relative;
+}
+.local-game.game-fullscreen.pikachu .classic-tile {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  min-width: 0;
+  min-height: 0;
+}
+.local-game.game-fullscreen.pikachu .classic-tile-art {
+  position: absolute;
+  inset: 3%;
+  width: 94%;
+  height: 94%;
+  object-fit: contain;
+}
+.local-game.game-fullscreen.pikachu .pika-tile:hover:not(:disabled) {
+  transform: none;
+  background: transparent;
+}
+.local-game.game-fullscreen.pikachu .pika-tile.picked .classic-tile {
+  transform: none;
+  box-shadow: none;
+}
+.phone-scoreboard,
+.orientation-hint {
+  display: none;
+}
+
+.local-game.phone-game.game-fullscreen {
+  --hud-height: calc(54px + env(safe-area-inset-top, 0px));
+  --foot-height: calc(62px + env(safe-area-inset-bottom, 0px));
+}
+.local-game.phone-game.game-fullscreen > .local-boards {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+.local-game.phone-game.game-fullscreen .local-player-head {
+  max-width: calc(50% - 53px);
+  padding: 5px;
+  left: 4px;
+  gap: 4px;
+}
+.local-game.phone-game.game-fullscreen .local-player-head span {
+  display: none;
+}
+.local-game.phone-game.game-fullscreen .local-player-head strong {
+  font-size: 20px;
+}
+.local-game.phone-game.game-fullscreen > .phone-scoreboard {
+  position: absolute;
+  z-index: 8;
+  top: calc(var(--hud-height) + 2px);
+  left: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  pointer-events: auto;
+}
+.phone-scoreboard button,
+.phone-scoreboard span {
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: #102238e8;
+  color: #dceaff;
+  font-size: 10px;
+  border: 1px solid #526982;
+}
+.phone-scoreboard button {
+  min-height: 36px;
+}
+.phone-scoreboard button[aria-pressed='true'] {
+  color: #ffe977;
+  border-color: #ffe977;
+}
+.local-game.phone-game.game-fullscreen:has(.phone-scoreboard) {
+  --hud-height: calc(90px + env(safe-area-inset-top, 0px));
+}
+.local-game.phone-game.game-fullscreen > .phone-scoreboard {
+  top: calc(52px + env(safe-area-inset-top, 0px));
+}
+.local-game.phone-game.game-fullscreen .buff-notice {
+  font-size: 11px;
+  padding: 6px 8px;
+}
+.local-game.phone-game.game-fullscreen .buff-aura {
+  animation: none;
+  border: 0;
+}
+.local-game.phone-game.game-fullscreen > .local-results {
+  padding: 14px;
+}
+.local-game.phone-game.game-fullscreen > .local-results h2 {
+  font-size: 20px;
+}
+.local-game.phone-game.game-fullscreen > .local-results > div {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  gap: 6px;
+  padding: 10px 0;
+  font-size: 12px;
+}
+.local-game.phone-game.game-fullscreen > .local-results > div > small {
+  grid-column: 3;
+}
+.local-game.phone-game.game-fullscreen > .local-results strong {
+  font-size: 18px;
+}
+.local-game.phone-game.game-fullscreen > .local-controls {
+  width: min(300px, calc(100% - 16px));
+}
+.local-game.phone-game.game-fullscreen.tetris .tet-controls button {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+}
+.local-game.phone-game.game-fullscreen.tetris .tet-controls button[data-action='drop'] {
+  flex: 1.4;
+  background: #2d5692;
+}
+.local-game.phone-game.phone-game-gate > .local-boards,
+.local-game.phone-game.phone-game-gate .local-help {
+  display: none;
+}
+.local-game.phone-game.phone-game-gate .local-controls {
+  position: static;
+  background: transparent;
+  backdrop-filter: none;
+}
+.local-game.phone-game.phone-game-gate
+  .local-controls
+  > button:not(.fullscreen-toggle):not(.fullscreen-exit) {
+  display: none;
+}
+.local-game.phone-game.phone-game-gate .fullscreen-exit {
+  display: flex;
+}
+@media (orientation: portrait) {
+  .local-game.phone-game.game-fullscreen.pikachu > .orientation-hint {
+    position: absolute;
+    inset: 0;
+    z-index: 14;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 28px;
+    background: #102238;
+    color: white;
+    text-align: center;
+  }
+  .local-game.phone-game.game-fullscreen.pikachu .orientation-hint strong {
+    font-size: 20px;
+  }
+  .local-game.phone-game.game-fullscreen.pikachu .orientation-hint span {
+    font-size: 14px;
+    color: #c1d7ec;
+  }
+}
+@media (orientation: landscape) and (max-height: 600px) {
+  .local-game.phone-game.game-fullscreen {
+    --hud-height: calc(48px + env(safe-area-inset-top, 0px));
+    --foot-height: calc(48px + env(safe-area-inset-bottom, 0px));
+  }
+  .local-game.phone-game.game-fullscreen.pikachu .pika-tools button {
+    min-height: 40px;
+  }
+  .local-game.phone-game.game-fullscreen.pikachu .pikachu-play {
+    width: calc(100% - 20px - env(safe-area-inset-left) - env(safe-area-inset-right));
+  }
+  .local-game.phone-game.game-fullscreen.pikachu .pika-board {
+    height: calc(var(--board-height) - 12px);
+    aspect-ratio: auto;
+  }
+  .local-game.phone-game.game-fullscreen.tetris .tet-controls {
+    left: auto;
+    right: 8px;
+    width: 180px;
+    flex-wrap: wrap;
+  }
+  .local-game.phone-game.game-fullscreen.tetris .tet-controls button {
+    flex: 1 0 48px;
+  }
+  .local-game.phone-game.game-fullscreen.tetris .tetris-machine {
+    --well-width: calc((var(--game-height, 100dvh) - var(--hud-height) - 16px) / 2);
+  }
+  .local-game.phone-game.game-fullscreen.tetris .tetris-player {
+    padding-bottom: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pika-tile,
+  .pika-tile .classic-tile,
+  .pika-progress span {
+    transition: none !important;
+  }
+  .buff-aura,
+  .buff-notice,
+  .pika-tile.rejected .classic-tile {
+    animation: none;
+  }
+}

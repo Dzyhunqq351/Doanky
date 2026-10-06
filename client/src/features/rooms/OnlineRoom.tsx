@@ -11,6 +11,7 @@ import type { BirdState } from '../../../../shared/flappyEngine.js';
 import { useGameAudio } from '../../lib/useGameAudio';
 import GameGuide from '../games/GameGuide';
 import { useGameFullscreen } from '../games/useGameFullscreen';
+import GameHud from '../games/GameHud';
 export default function OnlineRoom({
   room,
   userId,
@@ -27,6 +28,11 @@ export default function OnlineRoom({
     [busy, setBusy] = useState(false),
     [copied, setCopied] = useState(false),
     [flapSignal, setFlapSignal] = useState(0);
+  const inputSeq = useRef(0);
+  useEffect(() => {
+    inputSeq.current = 0;
+    setFlapSignal(0);
+  }, [room.matchId]);
   const surface = useRef<HTMLElement>(null),
     audio = useGameAudio(),
     anchor = useRef({ server: room.now, local: Date.now() }),
@@ -78,11 +84,14 @@ export default function OnlineRoom({
   }
   async function act(input: Record<string, unknown>) {
     if (!active) return false;
+    const seq = (inputSeq.current = Math.max(inputSeq.current, room.inputSeq?.[userId] || 0) + 1);
     if (room.game === 'flappy') {
-      setFlapSignal((value) => value + 1);
+      setFlapSignal(seq);
       audio.play('flap');
     }
-    const ok = await command('room:action', { ...input, matchId: room.matchId });
+    const ok = await command('room:action', { ...input, seq, matchId: room.matchId });
+    if (!ok && room.game === 'flappy')
+      setFlapSignal((value) => (value === seq ? room.inputSeq?.[userId] || 0 : value));
     return ok;
   }
   const actRef = useRef(act);
@@ -115,22 +124,30 @@ export default function OnlineRoom({
     }
     previous.current = { score: p.state.score, finished: p.finishedAt !== null, id: room.matchId };
   }, [room.now]);
-  const fullscreen = useGameFullscreen(surface, !!active);
+  const fullscreen = useGameFullscreen(surface, !!active, room.game);
   return (
     <section
-      className={`local-game online-game ${room.game}${room.game === 'pikachu' ? ' solo' : ''}${fullscreen.className}`}
+      className={`local-game online-game ${room.game} phase-${room.phase}${room.game === 'pikachu' ? ' solo' : ''}${fullscreen.className}`}
       ref={surface}
       tabIndex={-1}
       onPointerMove={fullscreen.reveal}
     >
       {fullscreen.menu}
+      {fullscreen.orientationHint}
       {match && (
-        <div className="fullscreen-hud" aria-live="polite">
-          <small>{match.limit ? 'THỜI GIAN CÒN' : 'THỜI GIAN'}</small>
-          <strong>
-            {clockText(match.limit ? Math.max(0, match.limit - liveElapsed) : liveElapsed)}
-          </strong>
-        </div>
+        <GameHud
+          label={match.limit ? 'THỜI GIAN CÒN' : 'THỜI GIAN'}
+          time={clockText(match.limit ? Math.max(0, match.limit - liveElapsed) : liveElapsed)}
+          players={match.players
+            .map((p, index) => ({
+              index,
+              name: `${room.players[index]?.name || p.name}${index === me ? ' · Bạn' : ''}`,
+              score: p.state.score,
+              finished: p.finishedAt !== null,
+            }))
+            .filter((p) => room.game !== 'pikachu' || p.index === me)}
+          selected={me}
+        />
       )}
       <header className="local-game-header">
         <button className="secondary" disabled={busy} onClick={() => void command('room:leave')}>
@@ -207,6 +224,10 @@ export default function OnlineRoom({
       </div>
       <div className="local-controls">
         {fullscreen.button}
+        <button className="secondary fullscreen-exit" onClick={() => void command('room:leave')}>
+          <ArrowLeft size={16} />
+          Rời phòng
+        </button>
         {host && (
           <button
             className="primary"
@@ -218,6 +239,7 @@ export default function OnlineRoom({
               room.players.some((p) => !p.connected)
             }
             onClick={async () => {
+              if (fullscreen.phone) void fullscreen.enter();
               setBusy(true);
               await command('room:start');
               setBusy(false);
@@ -238,11 +260,7 @@ export default function OnlineRoom({
         {match && (
           <b className="online-time">
             {match.limit ? 'Còn ' : 'Đã chơi '}
-            {clockText(
-              match.limit
-                ? Math.max(0, match.limit - liveElapsed)
-                : liveElapsed,
-            )}
+            {clockText(match.limit ? Math.max(0, match.limit - liveElapsed) : liveElapsed)}
           </b>
         )}
       </div>
@@ -250,13 +268,36 @@ export default function OnlineRoom({
         <div className="online-waiting">
           <h2>{room.players.length === 2 ? 'Đã đủ người chơi' : 'Phòng đã sẵn sàng'}</h2>
           <p>{host ? 'Bắt đầu khi đủ 2 người.' : 'Chờ chủ phòng bắt đầu.'}</p>
+          {fullscreen.enabled && (
+            <>
+              <strong className="waiting-code">{room.code}</strong>
+              <p>
+                {room.players
+                  .map((p) => `${p.name}${p.connected ? '' : ' (mất kết nối)'}`)
+                  .join(' · ')}
+              </p>
+              <button
+                className="secondary"
+                onClick={() => {
+                  void navigator.clipboard
+                    .writeText(`${location.origin}/?room=${room.code}`)
+                    .then(() => setCopied(true))
+                    .catch(() => setError(`Mã phòng: ${room.code}`));
+                }}
+              >
+                <Copy size={16} />
+                {copied ? 'Đã sao chép' : 'Sao chép lời mời'}
+              </button>
+            </>
+          )}
           <span className="tag">{gameNames[room.game]} · 2 tài khoản</span>
         </div>
       ) : (
         <div className="local-boards">
           {match.players.map(
             (p, i) =>
-              (room.game !== 'pikachu' || i === me) && (
+              (room.game !== 'pikachu' || i === me) &&
+              (!fullscreen.phone || i === me) && (
                 <article className="local-player" key={`${room.matchId}:${i}`}>
                   <div className="local-player-head">
                     <span>
@@ -274,7 +315,9 @@ export default function OnlineRoom({
                       active={!!active && i === me}
                       onFlap={() => void act({ type: 'flap' })}
                       network
+                      running={room.phase === 'playing' && match.phase === 'playing' && !countdown}
                       flapSignal={i === me ? flapSignal : 0}
+                      acknowledged={room.inputSeq?.[userId] || 0}
                     />
                   ) : room.game === 'tetris' ? (
                     <TetrisBoard
@@ -299,9 +342,7 @@ export default function OnlineRoom({
           {countdown > 0 && room.phase === 'playing' && (
             <div className="local-overlay">
               <strong>{countdown}</strong>
-              <p>
-                Chuẩn bị bắt đầu.
-              </p>
+              <p>Chuẩn bị bắt đầu.</p>
             </div>
           )}
         </div>

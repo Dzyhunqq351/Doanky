@@ -21,6 +21,7 @@ const schema = new mongoose.Schema(
     endedAt: { type: Date, required: true },
     ranking: { type: String, enum: ['score', 'time'], default: 'score' },
     results: [result],
+    hidden: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

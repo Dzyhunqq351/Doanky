@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { PHYSICS, type BirdState } from '../../../../shared/flappyEngine.js';
-import { advanceVertical } from '../../../../shared/flappyPhysics.js';
+import { presentBird, type BirdVisual } from '../../../../shared/flappyPresentation.js';
 import BuffNotice from '../../components/BuffNotice';
 export default function FlappyBoard({
   state,
@@ -9,6 +9,8 @@ export default function FlappyBoard({
   index,
   network = false,
   flapSignal = 0,
+  acknowledged = 0,
+  running = active,
 }: {
   state: BirdState;
   onFlap: () => void;
@@ -16,73 +18,82 @@ export default function FlappyBoard({
   index: number;
   network?: boolean;
   flapSignal?: number;
+  acknowledged?: number;
+  running?: boolean;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null),
     current = useRef(state),
-    visual = useRef<{ y: number; v: number; seed: number; alive: boolean } | null>(null),
+    visual = useRef<BirdVisual | null>(null),
     lastFlap = useRef(flapSignal);
+  const motion = useRef({ running, acknowledged, flapSignal });
+  motion.current = { running, acknowledged, flapSignal };
   const received = useRef(performance.now());
   if (current.current !== state) received.current = performance.now();
   current.current = state;
   useEffect(() => {
     if (!network || flapSignal === lastFlap.current) return;
+    const freshInput = flapSignal > lastFlap.current;
     lastFlap.current = flapSignal;
-    if (visual.current?.alive) visual.current.v = -PHYSICS.jump;
+    if (freshInput && visual.current?.alive) visual.current.v = -PHYSICS.jump;
   }, [flapSignal, network]);
   useEffect(() => {
     const ctx = canvas.current!.getContext('2d')!,
       sprite = new Image();
     sprite.src = '/flappy/sprite_sheet.png';
-    let viewWidth = 360;
+    let viewWidth = 360,
+      viewHeight = 640;
     const resize = new ResizeObserver(() => {
       const element = canvas.current;
       if (!element) return;
       const { width, height } = element.getBoundingClientRect();
       if (!width || !height) return;
-      viewWidth = Math.max(360, (width / height) * 640);
+      const scale = Math.min(width / 360, height / 640);
+      viewWidth = width / scale;
+      viewHeight = height / scale;
       const ratio = Math.min(window.devicePixelRatio || 1, 2);
-      element.width = Math.round(width * ratio);
-      element.height = Math.round(height * ratio);
+      const pixelsWide = Math.round(width * ratio),
+        pixelsHigh = Math.round(height * ratio);
+      if (element.width !== pixelsWide) element.width = pixelsWide;
+      if (element.height !== pixelsHigh) element.height = pixelsHigh;
     });
     resize.observe(canvas.current!);
     let frame = 0,
       lastDraw = performance.now();
     const draw = () => {
+      // React can detach the canvas before passive effect cleanup runs.
+      const element = canvas.current;
+      if (!element) return;
       const now = performance.now(),
-        deltaFrames = Math.min(3, Math.max(0, now - lastDraw) / (1000 / 60));
+        dt = now - lastDraw;
       lastDraw = now;
       let b = current.current;
-      if (network && b.alive) {
-        const frames = Math.min(120, now - received.current) / (1000 / 60);
-        b = { ...b, pipes: b.pipes.map((p) => ({ ...p, x: p.x - PHYSICS.dx * frames })) };
-        advanceVertical(b, frames);
-        b.y = Math.min(PHYSICS.ground - PHYSICS.ry, b.y);
-        const shown = visual.current;
-        if (
-          !shown ||
-          shown.seed !== b.seed ||
-          shown.alive !== b.alive ||
-          Math.abs(shown.y - b.y) > 110
-        )
-          visual.current = { y: b.y, v: b.v, seed: b.seed, alive: b.alive };
-        else {
-          advanceVertical(shown, deltaFrames);
-          const blend = Math.min(0.24, 0.1 * deltaFrames);
-          shown.y += (b.y - shown.y) * blend;
-          shown.v += (b.v - shown.v) * Math.min(0.14, 0.055 * deltaFrames);
-          shown.y = Math.min(PHYSICS.ground - PHYSICS.ry, Math.max(PHYSICS.ry, shown.y));
-          b.y = shown.y;
-          b.v = shown.v;
-        }
-      } else if (network) {
-        visual.current = { y: b.y, v: b.v, seed: b.seed, alive: b.alive };
+      if (network) {
+        const shown = presentBird(b, visual.current, {
+          dt,
+          age: now - received.current,
+          running: motion.current.running,
+          pendingFlap: motion.current.flapSignal > motion.current.acknowledged,
+        });
+        visual.current = shown;
+        const travel = (shown.frame - b.frame) * PHYSICS.dx;
+        b = {
+          ...b,
+          y: shown.y,
+          v: shown.v,
+          frame: shown.frame,
+          pipes: b.pipes.map((p) => ({ ...p, x: p.x - travel })),
+          pickups: b.pickups.map((p) => ({ ...p, x: p.x - travel })),
+        };
       }
-      const element = canvas.current!;
-      ctx.setTransform(element.width / viewWidth, 0, 0, element.height / 640, 0, 0);
+      ctx.setTransform(element.width / viewWidth, 0, 0, element.height / viewHeight, 0, 0);
       const offset = (viewWidth - 360) / 2;
+      const offsetY = (viewHeight - 640) / 2;
       ctx.fillStyle = '#99e3f7';
-      ctx.fillRect(0, 0, viewWidth, 640);
+      ctx.fillRect(0, 0, viewWidth, viewHeight);
+      ctx.fillStyle = '#d8cf85';
+      ctx.fillRect(0, PHYSICS.ground + offsetY, viewWidth, viewHeight);
       ctx.save();
+      ctx.translate(0, offsetY);
       if (b.reverseFrames > 0) {
         ctx.translate(viewWidth, 0);
         ctx.scale(-1, 1);

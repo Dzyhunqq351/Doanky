@@ -16,6 +16,7 @@ import './games.css';
 import GameGuide from './GameGuide';
 import { useGameFullscreen } from './useGameFullscreen';
 import { duelResults } from '../../../../shared/pikachuDuel.js';
+import GameHud from './GameHud';
 export const gameNames = { flappy: 'Flappy Bird', pikachu: 'Pikachu', tetris: 'Tetris' };
 export default function LocalGame({
   game,
@@ -29,6 +30,7 @@ export default function LocalGame({
   onExit: () => void;
 }) {
   const [second, setSecond] = useState('Người chơi 2'),
+    [focusPlayer, setFocusPlayer] = useState(0),
     [ranking, setRanking] = useState<'score' | 'time'>('score');
   const sequential = game === 'pikachu' && mode === 'local';
   const names = [name, mode === 'bot' ? 'Máy luyện tập' : second];
@@ -81,10 +83,21 @@ export default function LocalGame({
                 0),
           )
         : match.elapsed;
-  const fullscreen = useGameFullscreen(surface, playing);
+  const fullscreen = useGameFullscreen(surface, playing, game);
+  useEffect(() => {
+    if (playing && fullscreen.phone && (!fullscreen.enabled || !fullscreen.orientationReady))
+      controller.pause();
+  }, [playing, fullscreen.phone, fullscreen.enabled, fullscreen.orientationReady]);
+  function leave() {
+    if (
+      ['ready', 'results'].includes(match.phase) ||
+      window.confirm('Rời lượt chơi chưa hoàn thành? Điểm lượt này sẽ không được lưu.')
+    )
+      onExit();
+  }
   return (
     <section
-      className={`local-game ${game} ${mode === 'single' || sequential ? 'solo' : 'split'}${fullscreen.className}`}
+      className={`local-game ${game} phase-${match.phase} ${mode === 'single' || sequential ? 'solo' : 'split'}${fullscreen.className}`}
       ref={surface}
       tabIndex={-1}
       onPointerMove={fullscreen.reveal}
@@ -132,16 +145,35 @@ export default function LocalGame({
           {notice}
         </p>
       )}
-      <div className="fullscreen-hud" aria-live="polite">
-        <small>{match.limit ? 'THỜI GIAN CÒN' : 'THỜI GIAN'}</small>
-        <strong>{clockText(match.limit ? Math.max(0, match.limit - displayElapsed) : displayElapsed)}</strong>
-      </div>
+      <GameHud
+        label={match.limit ? 'THỜI GIAN CÒN' : 'THỜI GIAN'}
+        time={clockText(match.limit ? Math.max(0, match.limit - displayElapsed) : displayElapsed)}
+        players={match.players
+          .map((p, index) => ({
+            index,
+            name: `P${index + 1} · ${names[index]}`,
+            score: p.state.score,
+            finished: p.finishedAt !== null,
+          }))
+          .filter((p) => !sequential || p.index === (match.turn ?? 0))}
+        selected={fullscreen.phone ? focusPlayer : undefined}
+        onSelect={
+          fullscreen.phone && !sequential && match.players.length > 1 ? setFocusPlayer : undefined
+        }
+      />
       <div className="local-controls">
         {fullscreen.button}
+        <button className="secondary fullscreen-exit" onClick={leave}>
+          <ArrowLeft size={16} />
+          Về sảnh
+        </button>
         <button
           className="primary"
-          disabled={!['ready', 'paused', 'turn-ready'].includes(match.phase)}
+          disabled={
+            !fullscreen.orientationReady || !['ready', 'paused', 'turn-ready'].includes(match.phase)
+          }
           onClick={() => {
+            if (fullscreen.phone) void fullscreen.enter();
             if (['ready', 'turn-ready'].includes(match.phase)) {
               match.players.forEach((p, i) => (p.name = names[i]));
               if (sequential && match.phase === 'ready') match.ranking = ranking;
@@ -229,6 +261,7 @@ export default function LocalGame({
       <div className="local-boards">
         {match.players.map(
           (p, i) =>
+            (!fullscreen.phone || sequential || i === focusPlayer) &&
             (!sequential ||
               (i === match.turn && !['ready', 'turn-ready', 'results'].includes(match.phase))) && (
               <article className="local-player" key={`${id}:${i}`}>
@@ -350,6 +383,7 @@ export default function LocalGame({
         </section>
       )}
       {fullscreen.menu}
+      {fullscreen.orientationHint}
       <GameGuide game={game} />
     </section>
   );

@@ -14,15 +14,18 @@ const fail = (message) => {
 };
 const games = ['flappy', 'pikachu', 'tetris'];
 export class OnlineRoomService {
-  constructor(io) {
+  constructor(io, { autoTick = true, persist = persistMatch } = {}) {
     this.io = io;
+    this.persist = persist;
     this.rooms = new Map();
     this.members = new Map();
     this.sockets = new Map();
     this.last = performance.now();
     this.lastSent = 0;
-    this.timer = setInterval(() => this.tick(), 16);
-    this.timer.unref();
+    if (autoTick) {
+      this.timer = setInterval(() => this.tick(), 16);
+      this.timer.unref();
+    }
   }
   stop() {
     clearInterval(this.timer);
@@ -80,6 +83,7 @@ export class OnlineRoomService {
       results: r.results,
       persistence: r.persistence,
       rules: r.rules,
+      inputSeq: r.inputSeq || {},
     };
   }
   publish(r) {
@@ -106,7 +110,7 @@ export class OnlineRoomService {
       }
       this.publish(r);
       this.lobby();
-    }
+    } else socket.emit('room', null);
   }
   get(user) {
     const r = this.rooms.get(this.members.get(user.id));
@@ -213,6 +217,7 @@ export class OnlineRoomService {
     r.startsAt = Date.now() + 3000;
     r.matchId = randomUUID();
     r.results = [];
+    r.inputSeq = {};
     r.persistence = 'none';
     this.publish(r);
     this.lobby();
@@ -222,9 +227,14 @@ export class OnlineRoomService {
     if (r.phase !== 'playing' || r.matchId !== input.matchId || Date.now() < r.startsAt)
       fail('Trận chưa bắt đầu hoặc thao tác thuộc trận cũ.');
     const index = r.players.findIndex((p) => p.id === user.id);
+    if (Number.isSafeInteger(input.seq) && input.seq > 0) {
+      r.inputSeq ||= {};
+      if (input.seq <= (r.inputSeq[user.id] || 0)) return;
+      r.inputSeq[user.id] = input.seq;
+    }
     if (!localAction(r.match, index, input)) return;
     this.finish(r);
-    if (r.game !== 'flappy') this.publish(r);
+    this.publish(r);
   }
   end(user) {
     const r = this.host(user);
@@ -242,10 +252,15 @@ export class OnlineRoomService {
       avatar: r.players[p.index].avatar,
     }));
     r.persistence = 'saving';
+    this.saveResults(r);
+    this.publish(r);
+    this.lobby();
+  }
+  saveResults(r) {
     const matchId = r.matchId;
     void Promise.all(
       r.players.map((p) =>
-        persistMatch({
+        this.persist({
           matchId: `${p.id}:${matchId}`,
           accountId: p.id,
           game: r.game,
@@ -256,18 +271,20 @@ export class OnlineRoomService {
         }),
       ),
     ).then((saved) => {
-      if (r.matchId === matchId) {
+      if (this.rooms.get(r.code) === r && r.matchId === matchId && r.phase === 'results') {
         r.persistence = saved.every(Boolean) ? 'saved' : 'failed';
         this.publish(r);
       }
     });
-    this.publish(r);
-    this.lobby();
   }
   leave(user) {
     const code = this.members.get(user.id),
       r = this.rooms.get(code);
-    if (!r) return;
+    if (!r) {
+      this.members.delete(user.id);
+      this.sockets.get(user.id)?.emit('room', null);
+      return;
+    }
     if (r.phase === 'playing') {
       const index = r.players.findIndex((p) => p.id === user.id);
       if (index >= 0) r.match.players[index].forfeited = true;
@@ -285,6 +302,10 @@ export class OnlineRoomService {
       r.phase = 'waiting';
       r.match = null;
       r.results = [];
+      r.matchId = '';
+      r.startsAt = 0;
+      r.persistence = 'none';
+      r.inputSeq = {};
       this.publish(r);
     }
     this.lobby();

@@ -17,6 +17,7 @@ export function publicUser(user) {
     name: user.name,
     avatar: user.avatar,
     email: user.email || '',
+    role: user.role || 'user',
   };
 }
 export function credentials(input) {
@@ -90,6 +91,7 @@ export async function login(input) {
     user?.passwordHash || `${'0'.repeat(32)}:${'0'.repeat(128)}`,
   );
   if (!user || !valid) throw authError('Tên đăng nhập hoặc mật khẩu không đúng.', 401);
+  if (user.blocked) throw authError('Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.', 403);
   return user;
 }
 export async function resolveSession(token) {
@@ -105,7 +107,7 @@ export async function resolveLogin(token) {
   });
   if (!session) return null;
   const user = await User.findById(session.userId);
-  return user
+  return user && !user.blocked
     ? {
         user,
         tokenHash: session.tokenHash,

@@ -39,7 +39,7 @@ export function summarizeHub(matches, playerId, game = 'flappy') {
   };
 }
 export async function readHub(playerId, game) {
-  const matches = await Match.find({ accountId: playerId })
+  const matches = await Match.find({ accountId: playerId, hidden: { $ne: true } })
     .sort({ endedAt: -1 })
     .limit(100)
     .maxTimeMS(3000)
@@ -76,7 +76,7 @@ export function summarizeLeaderboard(matches, playerId) {
 }
 
 export async function readLeaderboard(playerId, game) {
-  const matches = await Match.find({ game })
+  const matches = await Match.find({ game, hidden: { $ne: true } })
     .sort({ endedAt: -1 })
     .limit(5000)
     .maxTimeMS(3000)

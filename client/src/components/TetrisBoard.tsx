@@ -31,6 +31,33 @@ export default function TetrisBoard({
   act: (data: Record<string, unknown>) => Promise<boolean>;
 }) {
   const surface = useRef<HTMLElement>(null);
+  const held = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const actRef = useRef(act);
+  actRef.current = act;
+  function release() {
+    clearTimeout(held.current);
+  }
+  useEffect(() => {
+    if (!active) release();
+    window.addEventListener('blur', release);
+    document.addEventListener('visibilitychange', release);
+    return () => {
+      release();
+      window.removeEventListener('blur', release);
+      document.removeEventListener('visibilitychange', release);
+    };
+  }, [active]);
+  function press(type: string) {
+    release();
+    void actRef.current({ type });
+    if (['left', 'right', 'down'].includes(type)) {
+      const repeat = () => {
+        void actRef.current({ type });
+        held.current = setTimeout(repeat, 75);
+      };
+      held.current = setTimeout(repeat, 160);
+    }
+  }
   useEffect(() => {
     if (active) surface.current?.focus({ preventScroll: true });
   }, [active]);
@@ -114,11 +141,16 @@ export default function TetrisBoard({
           ].map(([type, label]) => (
             <button
               key={type}
+              data-action={type}
               aria-label={`Tetris ${type}`}
               onPointerDown={(e) => {
                 e.preventDefault();
-                void act({ type });
+                e.currentTarget.setPointerCapture(e.pointerId);
+                press(type);
               }}
+              onPointerUp={release}
+              onPointerCancel={release}
+              onLostPointerCapture={release}
               onClick={(e) => {
                 if (e.detail === 0) void act({ type });
               }}

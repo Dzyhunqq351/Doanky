@@ -1,4 +1,11 @@
-export type User = { id: string; username: string; name: string; avatar: number; email?: string };
+export type User = {
+  id: string;
+  username: string;
+  name: string;
+  avatar: number;
+  email?: string;
+  role?: 'user' | 'superadmin';
+};
 export async function api<T = any>(path: string, method = 'GET', body?: unknown): Promise<T> {
   const response = await fetch(`/api${path}`, {
     method,
